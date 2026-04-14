@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (matches auth.uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: portfolios
+    // Document ID: portfolioId (auto-generated)
+    // Fields:
+    //   - userId: string (required, matches owner)
+    //   - name: string (required, 1-100 chars)
+    //   - description: string (optional, < 500 chars)
+    //   - totalValue: number (required, >= 0)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: portfolios/{portfolioId}/assets
+    // Document ID: assetId (auto-generated)
+    // Fields:
+    //   - portfolioId: string (required)
+    //   - userId: string (required)
+    //   - symbol: string (required, uppercase, 1-10 chars)
+    //   - name: string (required)
+    //   - quantity: number (required, >= 0)
+    //   - averagePrice: number (required, >= 0)
+    //   - type: string (required, enum: stock, crypto, other)
+    //   - lastUpdated: timestamp (required)
+    //
+    // Collection: transactions
+    // Document ID: transactionId (auto-generated)
+    // Fields:
+    //   - userId: string (required)
+    //   - portfolioId: string (required)
+    //   - assetId: string (optional)
+    //   - type: string (required, enum: buy, sell)
+    //   - quantity: number (required, > 0)
+    //   - price: number (required, >= 0)
+    //   - timestamp: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.uid == request.auth.uid &&
+             data.email is string && isValidEmail(data.email) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPortfolio(data) {
+      return data.userId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.totalValue is number && data.totalValue >= 0 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidAsset(data) {
+      return data.userId == request.auth.uid &&
+             data.symbol is string && data.symbol.size() > 0 && data.symbol.size() <= 10 &&
+             data.quantity is number && data.quantity >= 0 &&
+             data.averagePrice is number && data.averagePrice >= 0 &&
+             data.type in ['stock', 'crypto', 'other'] &&
+             data.lastUpdated is timestamp;
+    }
+
+    function isValidTransaction(data) {
+      return data.userId == request.auth.uid &&
+             data.type in ['buy', 'sell'] &&
+             data.quantity is number && data.quantity > 0 &&
+             data.price is number && data.price >= 0 &&
+             data.timestamp is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                    request.resource.data.uid == resource.data.uid;
+    }
+
+    match /portfolios/{portfolioId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidPortfolio(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && 
+                    isValidPortfolio(request.resource.data) &&
+                    request.resource.data.userId == resource.data.userId;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      match /assets/{assetId} {
+        allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+        allow create: if isAuthenticated() && isValidAsset(request.resource.data);
+        allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && 
+                      isValidAsset(request.resource.data) &&
+                      request.resource.data.userId == resource.data.userId;
+        allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      }
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
+      // Transactions are typically immutable
+      allow update: if false;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Private user profile data",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Portfolio": {
+      "title": "Investment Portfolio",
+      "description": "A collection of assets owned by a user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "totalValue": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name"]
+    },
+    "Asset": {
+      "title": "Investment Asset",
+      "description": "A specific holding in a portfolio",
+      "type": "object",
+      "properties": {
+        "portfolioId": { "type": "string" },
+        "userId": { "type": "string" },
+        "symbol": { "type": "string" },
+        "name": { "type": "string" },
+        "quantity": { "type": "number" },
+        "averagePrice": { "type": "number" },
+        "type": { "type": "string", "enum": ["stock", "crypto", "other"] },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["portfolioId", "userId", "symbol", "quantity"]
+    },
+    "Transaction": {
+      "title": "Asset Transaction",
+      "description": "A buy or sell event for an asset",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "portfolioId": { "type": "string" },
+        "assetId": { "type": "string" },
+        "type": { "type": "string", "enum": ["buy", "sell"] },
+        "quantity": { "type": "number" },
+        "price": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "portfolioId", "type", "quantity", "price", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/portfolios/{portfolioId}": {
+      "schema": "Portfolio",
+      "description": "User investment portfolios"
+    },
+    "/portfolios/{portfolioId}/assets/{assetId}": {
+      "schema": "Asset",
+      "description": "Assets within a specific portfolio"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "History of all transactions"
+    }
+  }
+}
