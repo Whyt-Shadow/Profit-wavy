@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { User, Transaction } from "./src/models/index.ts";
+import { User, Transaction } from "./src/models/index.js";
 
 dotenv.config();
 

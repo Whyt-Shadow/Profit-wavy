@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
 import { formatCurrency, cn } from '../lib/utils';
 import { 
   TrendingUp, 
@@ -25,12 +24,12 @@ import {
 } from 'recharts';
 import AIInsights from './AIInsights';
 
-export default function Dashboard({ user }: { user: User }) {
+export default function Dashboard({ user }) {
   const [totalBalance, setTotalBalance] = useState(0);
   const [invested, setInvested] = useState(0);
   const [availableCash, setAvailableCash] = useState(0);
   const [activeReturns, setActiveReturns] = useState(0);
-  const [recentReturns, setRecentReturns] = useState<any[]>([]);
+  const [recentReturns, setRecentReturns] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,7 +49,7 @@ export default function Dashboard({ user }: { user: User }) {
         const txRes = await fetch(`/api/transactions/${user.uid}`);
         if (txRes.ok) {
           const txData = await txRes.json();
-          setRecentReturns(txData.map((tx: any) => ({
+          setRecentReturns(txData.map((tx) => ({
             id: tx._id,
             name: tx.planName || tx.type,
             amount: tx.amount,

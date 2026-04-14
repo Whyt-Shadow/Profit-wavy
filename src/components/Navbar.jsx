@@ -1,12 +1,8 @@
 import { auth } from '../lib/firebase';
-import { GoogleAuthProvider, signInWithPopup, signOut, User } from 'firebase/auth';
-import { LogOut, TrendingUp, User as UserIcon } from 'lucide-react';
+import { signOut } from 'firebase/auth';
+import { LogOut, TrendingUp } from 'lucide-react';
 
-interface NavbarProps {
-  user: User;
-}
-
-export default function Navbar({ user }: NavbarProps) {
+export default function Navbar({ user }) {
   const handleSignOut = () => signOut(auth);
 
   return (

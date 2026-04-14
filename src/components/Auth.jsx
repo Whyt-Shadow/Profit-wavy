@@ -15,7 +15,7 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -28,7 +28,7 @@ export default function Auth() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -42,7 +42,7 @@ export default function Auth() {
           await updateProfile(userCredential.user, { displayName });
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Auth error:', err);
       setError(err.message || 'An error occurred during authentication.');
     } finally {

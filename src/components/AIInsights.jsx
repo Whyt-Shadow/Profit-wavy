@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-export default function AIInsights({ stats }: { stats: { balance: number, invested: number, returns: number } }) {
-  const [insight, setInsight] = useState<string | null>(null);
+export default function AIInsights({ stats }) {
+  const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const generateInsight = async () => {
@@ -109,6 +109,6 @@ export default function AIInsights({ stats }: { stats: { balance: number, invest
   );
 }
 
-function cn(...inputs: any[]) {
+function cn(...inputs) {
   return inputs.filter(Boolean).join(' ');
 }

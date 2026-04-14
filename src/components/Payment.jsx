@@ -4,17 +4,7 @@ import { ArrowLeft, Smartphone, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { usePaystackPayment } from 'react-paystack';
 import { auth } from '../lib/firebase';
 
-interface PaymentProps {
-  plan: {
-    name: string;
-    min: string;
-    returns: string;
-  };
-  onBack: () => void;
-  onSuccess: () => void;
-}
-
-export default function Payment({ plan, onBack, onSuccess }: PaymentProps) {
+export default function Payment({ plan, onBack, onSuccess }) {
   const [loading, setLoading] = useState(false);
   
   // Extract numeric value from "GH₵ 100"
@@ -35,7 +25,7 @@ export default function Payment({ plan, onBack, onSuccess }: PaymentProps) {
   const handlePayment = () => {
     setLoading(true);
     initializePayment({
-      onSuccess: async (reference: any) => {
+      onSuccess: async (reference) => {
         console.log('Payment successful', reference);
         
         try {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from './lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import Products from './components/Products';
@@ -14,10 +14,10 @@ import Footer from './components/Footer';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {

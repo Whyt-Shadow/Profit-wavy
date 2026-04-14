@@ -21,7 +21,7 @@ import {
 import Ticker from './Ticker';
 import Footer from './Footer';
 
-export default function LandingPage({ onGetStarted }: { onGetStarted: () => void }) {
+export default function LandingPage({ onGetStarted }) {
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);

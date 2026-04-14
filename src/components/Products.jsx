@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { Check, TrendingUp, Zap, Star, ShieldCheck, ArrowRight } from 'lucide-react';
 
-export default function Products({ onInvest }: { onInvest: (plan: any) => void }) {
+export default function Products({ onInvest }) {
   const plans = [
     {
       id: 'starter',

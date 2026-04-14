@@ -1,10 +1,9 @@
-import { User } from 'firebase/auth';
 import { motion } from 'motion/react';
 import { Settings, Shield, Bell, CreditCard, HelpCircle, ChevronRight, LogOut } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 
-export default function Me({ user }: { user: User }) {
+export default function Me({ user }) {
   const handleSignOut = () => signOut(auth);
 
   const menuItems = [

@@ -2,12 +2,7 @@ import { Home, Box, User } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 
-interface BottomNavProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
-
-export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
+export default function BottomNav({ activeTab, setActiveTab }) {
   const tabs = [
     { id: 'dashboard', label: 'Home', icon: Home },
     { id: 'products', label: 'Product', icon: Box },
