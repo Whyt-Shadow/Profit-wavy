@@ -110,7 +110,7 @@ export default function Auth() {
                   placeholder="John Doe"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full bg-gray-50 border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-gray-200 transition-all"
+                  className="w-full bg-gray-50 border border-transparent rounded-xl py-3 pl-12 pr-4 focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
                 />
               </div>
             </motion.div>
@@ -119,30 +119,30 @@ export default function Auth() {
 
         <div className="space-y-1">
           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Email Address</label>
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="relative group">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
             <input
               type="email"
               required
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-gray-200 transition-all"
+              className="w-full bg-gray-50 border border-transparent rounded-xl py-3 pl-12 pr-4 focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
             />
           </div>
         </div>
 
         <div className="space-y-1">
           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Password</label>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="relative group">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
             <input
               type="password"
               required
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-gray-200 transition-all"
+              className="w-full bg-gray-50 border border-transparent rounded-xl py-3 pl-12 pr-4 focus:bg-white focus:border-blue-500/30 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
             />
           </div>
         </div>
