@@ -18,7 +18,6 @@ import {
   PieChart
 } from 'lucide-react';
 
-import Ticker from './Ticker';
 import Footer from './Footer';
 
 export default function LandingPage({ onGetStarted }) {
@@ -61,9 +60,6 @@ export default function LandingPage({ onGetStarted }) {
           className="absolute -bottom-[10%] left-[10%] w-[70%] h-[70%] rounded-full bg-blue-900/20 blur-[180px]" 
         />
       </div>
-
-      {/* Live Ticker */}
-      <Ticker />
 
       {/* Header */}
       <header className="fixed top-8 left-0 right-0 z-50 px-6">

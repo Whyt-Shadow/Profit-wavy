@@ -9,7 +9,6 @@ import Payment from './components/Payment';
 import Auth from './components/Auth';
 import LandingPage from './components/LandingPage';
 import BottomNav from './components/BottomNav';
-import Ticker from './components/Ticker';
 import Footer from './components/Footer';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -143,7 +142,6 @@ export default function App() {
             animate={{ opacity: 1 }}
             className="flex flex-col min-h-screen"
           >
-            <Ticker />
             <Navbar user={user} />
             <main className="flex-1 container mx-auto px-4 pt-32 pb-32 max-w-7xl">
               <AnimatePresence mode="wait">
