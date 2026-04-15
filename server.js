@@ -91,6 +91,39 @@ async function startServer() {
     }
   });
 
+  // Add Payment Method
+  app.post("/api/users/:uid/payment-methods", async (req, res) => {
+    const { type, details, provider, isDefault } = req.body;
+    try {
+      const user = await User.findOne({ uid: req.params.uid });
+      if (!user) return res.status(404).json({ error: "User not found" });
+      
+      if (isDefault) {
+        user.paymentMethods.forEach(pm => pm.isDefault = false);
+      }
+      
+      user.paymentMethods.push({ type, details, provider, isDefault });
+      await user.save();
+      res.json(user.paymentMethods);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add payment method" });
+    }
+  });
+
+  // Remove Payment Method
+  app.delete("/api/users/:uid/payment-methods/:id", async (req, res) => {
+    try {
+      const user = await User.findOne({ uid: req.params.uid });
+      if (!user) return res.status(404).json({ error: "User not found" });
+      
+      user.paymentMethods = user.paymentMethods.filter(pm => pm._id.toString() !== req.params.id);
+      await user.save();
+      res.json(user.paymentMethods);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove payment method" });
+    }
+  });
+
   // Create Transaction
   app.post("/api/transactions", async (req, res) => {
     const { userId, type, amount, planName } = req.body;

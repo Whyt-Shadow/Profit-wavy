@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema({
   balance: { type: Number, default: 0 },
   totalInvested: { type: Number, default: 0 },
   totalReturns: { type: Number, default: 0 },
+  paymentMethods: [{
+    type: { type: String, enum: ['momo', 'card'] },
+    details: { type: String },
+    provider: { type: String },
+    isDefault: { type: Boolean, default: false }
+  }],
   createdAt: { type: Date, default: Date.now },
 }, { bufferCommands: false });
 

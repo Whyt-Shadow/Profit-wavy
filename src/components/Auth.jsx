@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import { TrendingUp, ShieldCheck, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import TermsModal from './TermsModal';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,6 +19,13 @@ export default function Auth() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsTitle, setTermsTitle] = useState('Terms and Conditions');
+
+  const openTerms = (title) => {
+    setTermsTitle(title);
+    setShowTerms(true);
+  };
 
   const handleGoogleSignIn = async () => {
     if (!agreedToTerms) {
@@ -148,7 +156,7 @@ export default function Auth() {
             className="mt-1 w-4 h-4 rounded border-gray-300 text-[#1e293b] focus:ring-[#1e293b] cursor-pointer"
           />
           <label htmlFor="terms" className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed cursor-pointer select-none">
-            I agree to the <button type="button" onClick={() => alert("Terms and Conditions: By using Profit Wavy, you agree to our institutional investment protocols and risk management policies.")} className="text-blue-500 hover:underline">Terms and Conditions</button> and <button type="button" onClick={() => alert("Privacy Policy: Your data is protected by institutional-grade encryption.")} className="text-blue-500 hover:underline">Privacy Policy</button>.
+            I agree to the <button type="button" onClick={() => openTerms("Terms and Conditions")} className="text-blue-500 hover:underline">Terms and Conditions</button> and <button type="button" onClick={() => openTerms("Privacy Policy")} className="text-blue-500 hover:underline">Privacy Policy</button>.
           </label>
         </div>
 
@@ -209,6 +217,12 @@ export default function Auth() {
         <ShieldCheck className="w-3 h-3" />
         Secure & Private
       </div>
+
+      <TermsModal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+        title={termsTitle} 
+      />
     </div>
   );
 }

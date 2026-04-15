@@ -1,12 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, Shield, Bell, CreditCard, HelpCircle, ChevronRight, LogOut, ArrowLeft, User as UserIcon, Lock, Globe, Smartphone, Mail, CheckCircle2 } from 'lucide-react';
+import { Settings, Shield, Bell, CreditCard, HelpCircle, ChevronRight, LogOut, ArrowLeft, User as UserIcon, Lock, Globe, Smartphone, Mail, CheckCircle2, Trash2, Plus, FileText } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
+import AddPaymentModal from './AddPaymentModal';
+import TermsModal from './TermsModal';
 
-export default function Me({ user }) {
+export default function Me({ user: firebaseUser }) {
   const [subView, setSubView] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsTitle, setTermsTitle] = useState('Terms and Conditions');
+
+  const openTerms = (title) => {
+    setTermsTitle(title);
+    setShowTerms(true);
+  };
+
   const handleSignOut = () => signOut(auth);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [firebaseUser.uid]);
+
+  const fetchUserData = async () => {
+    try {
+      const res = await fetch(`/api/users/${firebaseUser.uid}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserData(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddPayment = async (method) => {
+    try {
+      const res = await fetch(`/api/users/${firebaseUser.uid}/payment-methods`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(method),
+      });
+      if (res.ok) {
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to add payment method:", error);
+      throw error;
+    }
+  };
+
+  const handleRemovePayment = async (id) => {
+    if (!confirm("Are you sure you want to remove this payment method?")) return;
+    try {
+      const res = await fetch(`/api/users/${firebaseUser.uid}/payment-methods/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await fetchUserData();
+      }
+    } catch (error) {
+      console.error("Failed to remove payment method:", error);
+    }
+  };
 
   const menuItems = [
     { id: 'settings', icon: Settings, label: 'Account Settings', color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -28,14 +89,14 @@ export default function Me({ user }) {
                   <UserIcon className="w-5 h-5 text-gray-500" />
                   <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Display Name</span>
                 </div>
-                <span className="text-xs font-black text-white">{user.displayName || 'Not Set'}</span>
+                <span className="text-xs font-black text-white">{firebaseUser.displayName || 'Not Set'}</span>
               </div>
               <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-gray-500" />
                   <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Email Address</span>
                 </div>
-                <span className="text-xs font-black text-white">{user.email}</span>
+                <span className="text-xs font-black text-white">{firebaseUser.email}</span>
               </div>
             </div>
             <button className="w-full py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-700 transition-all">
@@ -84,6 +145,29 @@ export default function Me({ user }) {
               <span className="text-[8px] font-black bg-blue-600 px-2 py-1 rounded text-white uppercase">Enabled</span>
             </button>
           </div>
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+            <h3 className="text-lg font-black font-display uppercase italic text-gray-500">Legal Documents</h3>
+            <button 
+              onClick={() => openTerms("Terms and Conditions")}
+              className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5 text-gray-500" />
+                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Terms and Conditions</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-600" />
+            </button>
+            <button 
+              onClick={() => openTerms("Privacy Policy")}
+              className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <Shield className="w-5 h-5 text-gray-500" />
+                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Privacy Policy</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
         </div>
       ),
       notifications: (
@@ -111,26 +195,53 @@ export default function Me({ user }) {
       payments: (
         <div className="space-y-6">
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
-            <h3 className="text-lg font-black font-display uppercase italic text-purple-500">Saved Methods</h3>
-            <div className="p-6 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-20">
-                <CreditCard className="w-12 h-12 text-white" />
-              </div>
-              <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-4">Primary Card</p>
-              <p className="text-xl font-black font-display text-white tracking-[0.2em] mb-6">•••• •••• •••• 4242</p>
-              <div className="flex justify-between items-end">
-                <div>
-                  <p className="text-[8px] font-black text-white/50 uppercase tracking-widest">Card Holder</p>
-                  <p className="text-xs font-black text-white uppercase">{user.displayName || 'Investor'}</p>
-                </div>
-                <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
-                  <span className="text-[8px] font-black text-white uppercase">VISA</span>
-                </div>
-              </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black font-display uppercase italic text-purple-500">Saved Methods</h3>
+              <button 
+                onClick={() => setIsAddPaymentOpen(true)}
+                className="flex items-center gap-2 bg-purple-600/10 border border-purple-500/20 px-4 py-2 rounded-xl text-[10px] font-black text-purple-400 uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all"
+              >
+                <Plus className="w-3 h-3" />
+                Add New
+              </button>
             </div>
-            <button className="w-full py-4 border border-dashed border-white/10 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-white/20 hover:text-white transition-all">
-              + Add New Method
-            </button>
+            
+            <div className="space-y-4">
+              {userData?.paymentMethods?.length > 0 ? (
+                userData.paymentMethods.map((pm) => (
+                  <div key={pm._id} className="relative group">
+                    <div className={`p-6 bg-gradient-to-br ${pm.type === 'card' ? 'from-purple-600 to-indigo-700' : 'from-blue-600 to-cyan-700'} rounded-3xl relative overflow-hidden`}>
+                      <div className="absolute top-0 right-0 p-4 opacity-20">
+                        {pm.type === 'card' ? <CreditCard className="w-12 h-12 text-white" /> : <Smartphone className="w-12 h-12 text-white" />}
+                      </div>
+                      <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-4">
+                        {pm.provider} {pm.type === 'card' ? 'Card' : 'MoMo'}
+                      </p>
+                      <p className="text-xl font-black font-display text-white tracking-[0.2em] mb-6">
+                        {pm.type === 'card' ? `•••• •••• •••• ${pm.details.slice(-4)}` : pm.details}
+                      </p>
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <p className="text-[8px] font-black text-white/50 uppercase tracking-widest">Account Holder</p>
+                          <p className="text-xs font-black text-white uppercase">{firebaseUser.displayName || 'Investor'}</p>
+                        </div>
+                        <button 
+                          onClick={() => handleRemovePayment(pm._id)}
+                          className="bg-red-500/20 hover:bg-red-500 p-2 rounded-lg border border-red-500/20 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 bg-white/5 border border-dashed border-white/10 rounded-3xl">
+                  <CreditCard className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">No payment methods saved</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ),
@@ -167,6 +278,12 @@ export default function Me({ user }) {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
+      <AddPaymentModal 
+        isOpen={isAddPaymentOpen} 
+        onClose={() => setIsAddPaymentOpen(false)} 
+        onAdd={handleAddPayment} 
+      />
+      
       {/* Dynamic Mesh Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <motion.div 
@@ -198,25 +315,25 @@ export default function Me({ user }) {
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                     className="absolute -inset-4 border-2 border-dashed border-blue-600/30 rounded-full"
                   />
-                  {user.photoURL ? (
+                  {firebaseUser.photoURL ? (
                     <img 
-                      src={user.photoURL} 
-                      alt={user.displayName || 'Me'} 
+                      src={firebaseUser.photoURL} 
+                      alt={firebaseUser.displayName || 'Me'} 
                       className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] border-4 border-white/10 shadow-2xl relative z-10 object-cover"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] bg-blue-600 flex items-center justify-center text-white text-4xl md:text-5xl font-black border-4 border-white/10 shadow-2xl relative z-10 font-display italic">
-                      {user.displayName?.[0] || user.email?.[0]}
+                      {firebaseUser.displayName?.[0] || firebaseUser.email?.[0]}
                     </div>
                   )}
                   <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-green-500 w-6 h-6 md:w-8 md:h-8 rounded-xl md:rounded-2xl border-4 border-[#050505] z-20 shadow-lg" />
                 </div>
                 
                 <div className="space-y-1 md:space-y-2">
-                  <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase italic font-display">{user.displayName || 'Investor'}</h2>
+                  <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase italic font-display">{firebaseUser.displayName || 'Investor'}</h2>
                   <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 rounded-full">
-                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{user.email}</span>
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{firebaseUser.email}</span>
                   </div>
                 </div>
               </div>
@@ -280,6 +397,12 @@ export default function Me({ user }) {
           <p className="text-[10px] text-gray-700 font-black uppercase tracking-[0.5em]">Profit Wavy v2.4.0 • Institutional Grade</p>
         </div>
       </div>
+
+      <TermsModal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+        title={termsTitle} 
+      />
     </div>
   );
 }
