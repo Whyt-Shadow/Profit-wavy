@@ -23,7 +23,6 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import AIInsights from './AIInsights';
 import DepositModal from './DepositModal';
 import WithdrawModal from './WithdrawModal';
 
@@ -35,9 +34,11 @@ export default function Dashboard({ user, setActiveTab }) {
   const [recentReturns, setRecentReturns] = useState([]);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [dbError, setDbError] = useState(null);
 
   const fetchData = async () => {
     if (!user?.uid) return;
+    setDbError(null);
     try {
       // Fetch User Data from MongoDB
       const userRes = await fetch(`/api/users/${user.uid}`);
@@ -47,6 +48,10 @@ export default function Dashboard({ user, setActiveTab }) {
         setInvested(userData.totalInvested);
         setAvailableCash(userData.balance);
         setActiveReturns(userData.totalReturns);
+      } else {
+        const errorData = await userRes.json().catch(() => ({ error: 'Unknown server error' }));
+        console.error("Server error fetching user:", errorData.error);
+        if (userRes.status === 503) setDbError(errorData.error);
       }
 
       // Fetch Transactions from MongoDB
@@ -60,9 +65,14 @@ export default function Dashboard({ user, setActiveTab }) {
           type: tx.type === 'investment' || tx.type === 'withdrawal' ? 'loss' : 'gain',
           date: new Date(tx.timestamp).toLocaleDateString()
         })));
+      } else {
+        const errorData = await txRes.json().catch(() => ({ error: 'Unknown server error' }));
+        console.error("Server error fetching transactions:", errorData.error);
+        if (txRes.status === 503) setDbError(errorData.error);
       }
     } catch (error) {
-      console.error("Failed to fetch data from MongoDB:", error);
+      console.error("Network error fetching data from MongoDB:", error);
+      setDbError("Network error. Please check your connection.");
     }
   };
 
@@ -101,6 +111,22 @@ export default function Dashboard({ user, setActiveTab }) {
       </div>
 
       <div className="space-y-6 md:space-y-8 pb-32 pt-6 px-4 max-w-7xl mx-auto relative z-10">
+        {dbError && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex items-center gap-3 text-red-500 mb-6"
+          >
+            <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+              <Zap className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest">System Alert</p>
+              <p className="text-sm font-bold">{dbError}</p>
+            </div>
+          </motion.div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -251,16 +277,13 @@ export default function Dashboard({ user, setActiveTab }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-          <div className="lg:col-span-8">
-            <AIInsights stats={{ balance: availableCash, invested: invested, returns: activeReturns }} />
-          </div>
-          <div className="lg:col-span-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-10 flex flex-col justify-center items-center text-center space-y-4 md:space-y-6 group">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-blue-600/10 flex items-center justify-center border border-blue-600/20 group-hover:scale-110 transition-transform">
+          <div className="lg:col-span-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-10 flex flex-col md:flex-row justify-center items-center text-center md:text-left gap-6 md:gap-10 group">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-blue-600/10 flex items-center justify-center border border-blue-600/20 group-hover:scale-110 transition-transform shrink-0">
               <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
             </div>
-            <div className="space-y-2">
-              <h3 className="text-base md:text-lg font-black font-display uppercase italic">Institutional Trust</h3>
-              <p className="text-[10px] md:text-xs text-gray-500 font-medium leading-relaxed">Your capital is protected by vault-grade security and multi-sig protocols.</p>
+            <div className="space-y-2 max-w-2xl">
+              <h3 className="text-xl md:text-2xl font-black font-display uppercase italic">Institutional Trust & Security</h3>
+              <p className="text-xs md:text-sm text-gray-500 font-medium leading-relaxed">Your capital is protected by vault-grade security, multi-sig protocols, and institutional custody. We ensure the highest level of protection for your digital assets.</p>
             </div>
           </div>
         </div>
@@ -277,7 +300,12 @@ export default function Dashboard({ user, setActiveTab }) {
               <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Transaction History</h3>
               <p className="text-2xl md:text-3xl font-black font-display uppercase italic">Recent <span className="text-gray-600">Activity.</span></p>
             </div>
-            <button className="text-[8px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] hover:text-white transition-colors border border-blue-500/30 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl hover:bg-blue-600 hover:border-blue-600 self-start md:self-auto">
+            <button 
+              onClick={() => {
+                alert("Generating institutional statement... Your report will be available for download in the Me section shortly.");
+              }}
+              className="text-[8px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] hover:text-white transition-colors border border-blue-500/30 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl hover:bg-blue-600 hover:border-blue-600 self-start md:self-auto"
+            >
               Export Statement
             </button>
           </div>

@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   totalInvested: { type: Number, default: 0 },
   totalReturns: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
-});
+}, { bufferCommands: false });
 
 export const User = mongoose.models.User || mongoose.model('User', userSchema);
 
@@ -20,6 +20,6 @@ const transactionSchema = new mongoose.Schema({
   planName: { type: String },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
   timestamp: { type: Date, default: Date.now },
-});
+}, { bufferCommands: false });
 
 export const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', transactionSchema);

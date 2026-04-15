@@ -24,7 +24,7 @@ export default function App() {
       if (firebaseUser) {
         // Sync with MongoDB
         try {
-          await fetch('/api/users/sync', {
+          const syncRes = await fetch('/api/users/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -34,8 +34,12 @@ export default function App() {
               photoURL: firebaseUser.photoURL,
             }),
           });
+          if (!syncRes.ok) {
+            const errorData = await syncRes.json().catch(() => ({ error: 'Unknown server error' }));
+            console.error("Server error syncing user:", errorData.error);
+          }
         } catch (error) {
-          console.error("Failed to sync user with MongoDB:", error);
+          console.error("Network error syncing user with MongoDB:", error);
         }
         setUser(firebaseUser);
       } else {
@@ -142,7 +146,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             className="flex flex-col min-h-screen"
           >
-            <Navbar user={user} />
+            <Navbar user={user} setActiveTab={setActiveTab} />
             <main className="flex-1 container mx-auto px-4 pt-32 pb-32 max-w-7xl">
               <AnimatePresence mode="wait">
                 <motion.div

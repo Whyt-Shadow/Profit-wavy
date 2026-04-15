@@ -17,8 +17,13 @@ export default function Auth() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    if (!agreedToTerms) {
+      setError('You must agree to the Terms and Conditions to continue.');
+      return;
+    }
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
@@ -31,8 +36,13 @@ export default function Auth() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
 
+    if (!agreedToTerms) {
+      setError('You must agree to the Terms and Conditions to continue.');
+      return;
+    }
+
+    setLoading(true);
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
@@ -127,6 +137,19 @@ export default function Auth() {
               className="w-full bg-gray-50 border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-gray-200 transition-all"
             />
           </div>
+        </div>
+
+        <div className="flex items-start gap-3 py-2">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreedToTerms}
+            onChange={(e) => setAgreedToTerms(e.target.checked)}
+            className="mt-1 w-4 h-4 rounded border-gray-300 text-[#1e293b] focus:ring-[#1e293b] cursor-pointer"
+          />
+          <label htmlFor="terms" className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed cursor-pointer select-none">
+            I agree to the <button type="button" onClick={() => alert("Terms and Conditions: By using Profit Wavy, you agree to our institutional investment protocols and risk management policies.")} className="text-blue-500 hover:underline">Terms and Conditions</button> and <button type="button" onClick={() => alert("Privacy Policy: Your data is protected by institutional-grade encryption.")} className="text-blue-500 hover:underline">Privacy Policy</button>.
+          </label>
         </div>
 
         {error && (

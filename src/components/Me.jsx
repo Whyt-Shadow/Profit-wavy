@@ -1,18 +1,169 @@
-import { motion } from 'motion/react';
-import { Settings, Shield, Bell, CreditCard, HelpCircle, ChevronRight, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Settings, Shield, Bell, CreditCard, HelpCircle, ChevronRight, LogOut, ArrowLeft, User as UserIcon, Lock, Globe, Smartphone, Mail, CheckCircle2 } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 
 export default function Me({ user }) {
+  const [subView, setSubView] = useState(null);
   const handleSignOut = () => signOut(auth);
 
   const menuItems = [
-    { icon: Settings, label: 'Account Settings', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { icon: Shield, label: 'Security & Privacy', color: 'text-green-600', bg: 'bg-green-50' },
-    { icon: Bell, label: 'Notifications', color: 'text-orange-600', bg: 'bg-orange-50' },
-    { icon: CreditCard, label: 'Payment Methods', color: 'text-purple-600', bg: 'bg-purple-50' },
-    { icon: HelpCircle, label: 'Support & Help', color: 'text-gray-600', bg: 'bg-gray-50' },
+    { id: 'settings', icon: Settings, label: 'Account Settings', color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'security', icon: Shield, label: 'Security & Privacy', color: 'text-green-600', bg: 'bg-green-50' },
+    { id: 'notifications', icon: Bell, label: 'Notifications', color: 'text-orange-600', bg: 'bg-orange-50' },
+    { id: 'payments', icon: CreditCard, label: 'Payment Methods', color: 'text-purple-600', bg: 'bg-purple-50' },
+    { id: 'support', icon: HelpCircle, label: 'Support & Help', color: 'text-gray-600', bg: 'bg-gray-50' },
   ];
+
+  const renderSubView = () => {
+    const views = {
+      settings: (
+        <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+            <h3 className="text-lg font-black font-display uppercase italic text-blue-500">Profile Information</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-3">
+                  <UserIcon className="w-5 h-5 text-gray-500" />
+                  <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Display Name</span>
+                </div>
+                <span className="text-xs font-black text-white">{user.displayName || 'Not Set'}</span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-gray-500" />
+                  <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Email Address</span>
+                </div>
+                <span className="text-xs font-black text-white">{user.email}</span>
+              </div>
+            </div>
+            <button className="w-full py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-700 transition-all">
+              Update Profile
+            </button>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+            <h3 className="text-lg font-black font-display uppercase italic text-gray-500">Preferences</h3>
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+              <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Language</span>
+              <span className="text-xs font-black text-white">English (US)</span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+              <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Currency</span>
+              <span className="text-xs font-black text-white">GHS (₵)</span>
+            </div>
+          </div>
+        </div>
+      ),
+      security: (
+        <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+            <h3 className="text-lg font-black font-display uppercase italic text-green-500">Security Status</h3>
+            <div className="flex items-center gap-4 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl">
+              <Shield className="w-8 h-8 text-green-500" />
+              <div>
+                <p className="text-xs font-black text-white uppercase tracking-widest">Institutional Grade Active</p>
+                <p className="text-[10px] text-green-500/70 font-bold uppercase tracking-widest mt-0.5">Your account is fully protected</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+            <h3 className="text-lg font-black font-display uppercase italic text-gray-500">Security Actions</h3>
+            <button className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+              <div className="flex items-center gap-3">
+                <Lock className="w-5 h-5 text-gray-500" />
+                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Change Password</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-600" />
+            </button>
+            <button className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+              <div className="flex items-center gap-3">
+                <Smartphone className="w-5 h-5 text-gray-500" />
+                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Two-Factor Auth</span>
+              </div>
+              <span className="text-[8px] font-black bg-blue-600 px-2 py-1 rounded text-white uppercase">Enabled</span>
+            </button>
+          </div>
+        </div>
+      ),
+      notifications: (
+        <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+            <h3 className="text-lg font-black font-display uppercase italic text-orange-500">Notification Channels</h3>
+            {[
+              { label: 'Email Alerts', desc: 'Daily summaries and reports', active: true },
+              { label: 'Push Notifications', desc: 'Real-time wave updates', active: true },
+              { label: 'SMS Security', desc: 'Critical account alerts', active: false },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div>
+                  <p className="text-xs font-black text-white uppercase tracking-widest">{item.label}</p>
+                  <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">{item.desc}</p>
+                </div>
+                <div className={`w-10 h-5 rounded-full relative transition-colors ${item.active ? 'bg-orange-500' : 'bg-gray-800'}`}>
+                  <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${item.active ? 'right-1' : 'left-1'}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      payments: (
+        <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
+            <h3 className="text-lg font-black font-display uppercase italic text-purple-500">Saved Methods</h3>
+            <div className="p-6 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-20">
+                <CreditCard className="w-12 h-12 text-white" />
+              </div>
+              <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-4">Primary Card</p>
+              <p className="text-xl font-black font-display text-white tracking-[0.2em] mb-6">•••• •••• •••• 4242</p>
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-[8px] font-black text-white/50 uppercase tracking-widest">Card Holder</p>
+                  <p className="text-xs font-black text-white uppercase">{user.displayName || 'Investor'}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
+                  <span className="text-[8px] font-black text-white uppercase">VISA</span>
+                </div>
+              </div>
+            </div>
+            <button className="w-full py-4 border border-dashed border-white/10 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-white/20 hover:text-white transition-all">
+              + Add New Method
+            </button>
+          </div>
+        </div>
+      ),
+      support: (
+        <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+            <h3 className="text-lg font-black font-display uppercase italic text-gray-500">Help Center</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <button className="p-6 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all text-center space-y-3">
+                <Mail className="w-6 h-6 text-blue-500 mx-auto" />
+                <p className="text-[10px] font-black text-white uppercase tracking-widest">Email Support</p>
+              </button>
+              <button className="p-6 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all text-center space-y-3">
+                <Globe className="w-6 h-6 text-green-500 mx-auto" />
+                <p className="text-[10px] font-black text-white uppercase tracking-widest">Knowledge Base</p>
+              </button>
+            </div>
+            <div className="p-6 bg-blue-600/10 border border-blue-600/20 rounded-2xl space-y-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                <p className="text-[10px] font-black text-white uppercase tracking-widest">Priority Support Active</p>
+              </div>
+              <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
+                As an institutional investor, you have 24/7 access to our dedicated support wave.
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    };
+
+    return views[subView] || null;
+  };
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30 overflow-x-hidden relative">
@@ -31,62 +182,99 @@ export default function Me({ user }) {
       </div>
 
       <div className="space-y-8 md:space-y-12 pb-32 pt-12 px-4 max-w-3xl mx-auto relative z-10">
-        <div className="flex flex-col items-center text-center space-y-6 md:space-y-8">
-          <div className="relative group">
-            <motion.div 
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -inset-4 border-2 border-dashed border-blue-600/30 rounded-full"
-            />
-            {user.photoURL ? (
-              <img 
-                src={user.photoURL} 
-                alt={user.displayName || 'Me'} 
-                className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] border-4 border-white/10 shadow-2xl relative z-10 object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] bg-blue-600 flex items-center justify-center text-white text-4xl md:text-5xl font-black border-4 border-white/10 shadow-2xl relative z-10 font-display italic">
-                {user.displayName?.[0] || user.email?.[0]}
-              </div>
-            )}
-            <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-green-500 w-6 h-6 md:w-8 md:h-8 rounded-xl md:rounded-2xl border-4 border-[#050505] z-20 shadow-lg" />
-          </div>
-          
-          <div className="space-y-1 md:space-y-2">
-            <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase italic font-display">{user.displayName || 'Investor'}</h2>
-            <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 rounded-full">
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{user.email}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] overflow-hidden shadow-2xl">
-          {menuItems.map((item, index) => (
-            <button 
-              key={item.label}
-              className={`w-full flex items-center justify-between p-6 md:p-8 hover:bg-white/[0.05] transition-all group ${
-                index !== menuItems.length - 1 ? 'border-b border-white/5' : ''
-              }`}
+        <AnimatePresence mode="wait">
+          {!subView ? (
+            <motion.div
+              key="main"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8 md:space-y-12"
             >
-              <div className="flex items-center gap-4 md:gap-6">
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg ${item.bg.replace('bg-', 'bg-opacity-20 bg-')}`}>
-                  <item.icon className={`w-6 h-6 md:w-7 md:h-7 ${item.color}`} />
+              <div className="flex flex-col items-center text-center space-y-6 md:space-y-8">
+                <div className="relative group">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute -inset-4 border-2 border-dashed border-blue-600/30 rounded-full"
+                  />
+                  {user.photoURL ? (
+                    <img 
+                      src={user.photoURL} 
+                      alt={user.displayName || 'Me'} 
+                      className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] border-4 border-white/10 shadow-2xl relative z-10 object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] bg-blue-600 flex items-center justify-center text-white text-4xl md:text-5xl font-black border-4 border-white/10 shadow-2xl relative z-10 font-display italic">
+                      {user.displayName?.[0] || user.email?.[0]}
+                    </div>
+                  )}
+                  <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-green-500 w-6 h-6 md:w-8 md:h-8 rounded-xl md:rounded-2xl border-4 border-[#050505] z-20 shadow-lg" />
                 </div>
-                <span className="font-black text-base md:text-lg font-display uppercase italic tracking-tight text-gray-200 group-hover:text-white transition-colors">{item.label}</span>
+                
+                <div className="space-y-1 md:space-y-2">
+                  <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase italic font-display">{user.displayName || 'Investor'}</h2>
+                  <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 rounded-full">
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{user.email}</span>
+                  </div>
+                </div>
               </div>
-              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-gray-600 group-hover:text-blue-500 group-hover:translate-x-2 transition-all" />
-            </button>
-          ))}
-        </div>
 
-        <button 
-          onClick={handleSignOut}
-          className="w-full bg-red-500/10 text-red-500 border border-red-500/20 font-black py-5 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all group shadow-xl shadow-red-500/5 active:scale-[0.98] uppercase tracking-[0.3em] text-[10px] md:text-xs"
-        >
-          <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          Terminate Session
-        </button>
+              <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] md:rounded-[48px] overflow-hidden shadow-2xl">
+                {menuItems.map((item, index) => (
+                  <button 
+                    key={item.label}
+                    onClick={() => setSubView(item.id)}
+                    className={`w-full flex items-center justify-between p-4 md:p-8 hover:bg-white/[0.05] transition-all group active:scale-[0.99] ${
+                      index !== menuItems.length - 1 ? 'border-b border-white/5' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 md:gap-6">
+                      <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg ${item.bg.replace('bg-', 'bg-opacity-20 bg-')}`}>
+                        <item.icon className={`w-5 h-5 md:w-7 md:h-7 ${item.color}`} />
+                      </div>
+                      <span className="font-black text-sm md:text-lg font-display uppercase italic tracking-tight text-gray-200 group-hover:text-white transition-colors">{item.label}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-gray-600 group-hover:text-blue-500 group-hover:translate-x-2 transition-all" />
+                  </button>
+                ))}
+              </div>
+
+              <button 
+                onClick={handleSignOut}
+                className="w-full bg-red-500/10 text-red-500 border border-red-500/20 font-black py-5 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all group shadow-xl shadow-red-500/5 active:scale-[0.98] uppercase tracking-[0.3em] text-[10px] md:text-xs"
+              >
+                <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                Terminate Session
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="sub"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-8"
+            >
+              <div className="flex items-center justify-between">
+                <button 
+                  onClick={() => setSubView(null)}
+                  className="flex items-center gap-3 text-[10px] font-black text-gray-500 hover:text-white transition-all uppercase tracking-[0.3em] group"
+                >
+                  <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all">
+                    <ArrowLeft className="w-4 h-4" />
+                  </div>
+                  Back to Profile
+                </button>
+                <h2 className="text-xl font-black font-display uppercase italic text-white tracking-tighter">
+                  {menuItems.find(m => m.id === subView)?.label}
+                </h2>
+              </div>
+              {renderSubView()}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="text-center">
           <p className="text-[10px] text-gray-700 font-black uppercase tracking-[0.5em]">Profit Wavy v2.4.0 • Institutional Grade</p>

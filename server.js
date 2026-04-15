@@ -21,6 +21,15 @@ async function startServer() {
   const PORT = process.env.PORT || 3000;
 
   app.use(express.json());
+ 
+  // MongoDB Connection Status Middleware
+  const checkMongoConnection = (req, res, next) => {
+    if (mongoose.connection.readyState !== 1 && req.path.startsWith('/api/') && !['/api/health', '/api/test'].includes(req.path)) {
+      return res.status(503).json({ error: "Database connection is not ready. Please check MONGODB_URI." });
+    }
+    next();
+  };
+  app.use(checkMongoConnection);
 
   // Request logging middleware
   app.use((req, res, next) => {

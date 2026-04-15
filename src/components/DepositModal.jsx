@@ -91,17 +91,6 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex flex-col items-center gap-2">
-                  <Smartphone className="w-6 h-6 text-blue-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">MoMo</span>
-                </div>
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center gap-2">
-                  <CreditCard className="w-6 h-6 text-gray-400" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Card</span>
-                </div>
-              </div>
-
               <div className="bg-blue-500/5 border border-blue-500/10 p-4 rounded-2xl flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0" />
                 <p className="text-[10px] text-blue-200/60 leading-relaxed font-medium uppercase tracking-wider">

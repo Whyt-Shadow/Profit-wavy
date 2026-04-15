@@ -76,18 +76,18 @@ export default function LandingPage({ onGetStarted }) {
             </div>
             
             <nav className="hidden lg:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.3em] text-gray-400">
-              <a href="#features" className="hover:text-white transition-colors relative group">
+              <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors relative group">
                 Features
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
-              </a>
-              <a href="#plans" className="hover:text-white transition-colors relative group">
+              </button>
+              <button onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors relative group">
                 Plans
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
-              </a>
-              <a href="#security" className="hover:text-white transition-colors relative group">
+              </button>
+              <button onClick={() => document.getElementById('security')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-white transition-colors relative group">
                 Security
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
-              </a>
+              </button>
             </nav>
 
             <div className="flex items-center gap-4">
@@ -167,7 +167,10 @@ export default function LandingPage({ onGetStarted }) {
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
                 />
               </button>
-              <button className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 md:px-12 py-5 md:py-6 rounded-2xl md:rounded-[32px] font-black text-base md:text-xl hover:bg-white/10 transition-all active:scale-95">
+              <button 
+                onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 md:px-12 py-5 md:py-6 rounded-2xl md:rounded-[32px] font-black text-base md:text-xl hover:bg-white/10 transition-all active:scale-95"
+              >
                 View Plans
               </button>
             </motion.div>
@@ -230,7 +233,10 @@ export default function LandingPage({ onGetStarted }) {
                   <p className="text-base md:text-xl text-gray-400 leading-relaxed font-medium">
                     Our proprietary algorithm dynamically shifts your capital into the highest performing waves, ensuring maximum ROI while maintaining strict risk parameters.
                   </p>
-                  <button className="flex items-center gap-3 text-blue-500 font-black text-[10px] md:text-xs uppercase tracking-widest group/btn">
+                  <button 
+                    onClick={() => alert("Institutional strategy analysis is currently being updated for the next market wave.")}
+                    className="flex items-center gap-3 text-blue-500 font-black text-[10px] md:text-xs uppercase tracking-widest group/btn"
+                  >
                     Explore Strategy
                     <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />
                   </button>
@@ -324,7 +330,7 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* How it Works - Editorial Style */}
-      <section className="py-20 md:py-40 bg-white text-black relative overflow-hidden">
+      <section id="plans" className="py-20 md:py-40 bg-white text-black relative overflow-hidden">
         <div className="container mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20">
             <div className="lg:col-span-5 space-y-8 md:space-y-12">
@@ -365,7 +371,7 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* Testimonials - Premium Grid */}
-      <section className="py-20 md:py-40 px-6 bg-[#050505]">
+      <section id="security" className="py-20 md:py-40 px-6 bg-[#050505]">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-16 md:mb-32 space-y-4 md:space-y-6">
             <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-blue-500">Wall of Dominance</span>
