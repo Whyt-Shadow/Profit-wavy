@@ -221,9 +221,11 @@ export default function Me({ user: firebaseUser }) {
                         {pm.type === 'card' ? `•••• •••• •••• ${pm.details.slice(-4)}` : pm.details}
                       </p>
                       <div className="flex justify-between items-end">
-                        <div>
+                        <div className="max-w-[150px] md:max-w-[200px]">
                           <p className="text-[8px] font-black text-white/50 uppercase tracking-widest">Account Holder</p>
-                          <p className="text-xs font-black text-white uppercase">{firebaseUser.displayName || 'Investor'}</p>
+                          <p className="text-xs font-black text-white uppercase truncate" title={firebaseUser.displayName || firebaseUser.email}>
+                            {firebaseUser.displayName || firebaseUser.email || 'Investor'}
+                          </p>
                         </div>
                         <button 
                           onClick={() => handleRemovePayment(pm._id)}
