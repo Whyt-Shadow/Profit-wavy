@@ -10,10 +10,6 @@ export default function Navbar({ user }) {
       <div className="container mx-auto px-6 flex items-center justify-between max-w-7xl">
         <div className="flex items-center gap-2">
           <div className="flex flex-col leading-none">
-            <div className="flex items-center gap-1">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-              <span className="font-black text-2xl tracking-tighter text-white uppercase italic font-display">Profit</span>
-            </div>
             <span className="font-black text-2xl tracking-tighter text-white uppercase italic ml-7 -mt-1 font-display">Wavy</span>
           </div>
         </div>

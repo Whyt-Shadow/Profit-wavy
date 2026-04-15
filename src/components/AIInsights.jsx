@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Sparkles, RefreshCw, AlertCircle, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const ai = new GoogleGenAI(import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "");
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export default function AIInsights({ stats }) {
   const [insight, setInsight] = useState(null);
@@ -14,12 +14,12 @@ export default function AIInsights({ stats }) {
     try {
       const prompt = `As an institutional financial advisor, provide a brief, professional analysis of this investment profile: Balance: GH₵ ${stats.balance}, Invested: GH₵ ${stats.invested}, Returns: GH₵ ${stats.returns}. Focus on strategic growth and market positioning. Keep it under 80 words.`;
 
-      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+      });
 
-      setInsight(text || "Unable to generate insights at this time.");
+      setInsight(response.text || "Unable to generate insights at this time.");
     } catch (error) {
       console.error('AI error:', error);
       setInsight("Error connecting to AI advisor. Please try again later.");

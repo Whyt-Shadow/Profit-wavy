@@ -2,13 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 
 const tickerItems = [
-  "New Investment: GH₵ 5,000 in Gold Plan",
-  "Payout: GH₵ 1,200 to +233 24 **** 89",
-  "New User: Ama S. joined the Elite Wave",
-  "Market Update: Gold Plan ROI increased to 2.5%",
-  "New Investment: GH₵ 10,000 in Legacy Plan",
-  "Payout: GH₵ 3,500 to +233 55 **** 12",
-  "New User: David O. joined the Premium Wave",
+  
 ];
 
 export default function Ticker() {

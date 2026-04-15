@@ -15,7 +15,7 @@ export default function Payment({ plan, onBack, onSuccess }) {
     reference: (new Date()).getTime().toString(),
     email: auth.currentUser?.email || 'customer@example.com',
     amount: amountInPesewas,
-    publicKey: process.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key_here',
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key_here',
     currency: 'GHS',
     channels: ['mobile_money', 'card'],
   };
