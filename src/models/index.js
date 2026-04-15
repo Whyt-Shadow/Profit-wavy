@@ -15,7 +15,7 @@ export const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 const transactionSchema = new mongoose.Schema({
   userId: { type: String, required: true },
-  type: { type: String, enum: ['investment', 'return', 'deposit'], required: true },
+  type: { type: String, enum: ['investment', 'return', 'deposit', 'withdrawal'], required: true },
   amount: { type: Number, required: true },
   planName: { type: String },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },

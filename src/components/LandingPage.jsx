@@ -109,23 +109,23 @@ export default function LandingPage({ onGetStarted }) {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-64 pb-32 px-6 overflow-hidden">
+      <section className="relative pt-32 md:pt-48 pb-20 md:pb-32 px-6 overflow-hidden">
         <div className="container mx-auto max-w-7xl relative z-10">
-          <div className="flex flex-col items-center text-center space-y-12">
+          <div className="flex flex-col items-center text-center space-y-8 md:space-y-12">
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-full"
+              className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-xl border border-white/10 px-4 md:px-6 py-2 md:py-3 rounded-full"
             >
               <div className="flex -space-x-2">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="w-6 h-6 rounded-full border-2 border-[#050505] bg-gray-800 overflow-hidden">
+                  <div key={i} className="w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-[#050505] bg-gray-800 overflow-hidden">
                     <img src={`https://picsum.photos/seed/face${i}/50/50`} alt="User" referrerPolicy="no-referrer" />
                   </div>
                 ))}
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">
                 Trusted by 50,000+ Global Investors
               </span>
             </motion.div>
@@ -134,7 +134,7 @@ export default function LandingPage({ onGetStarted }) {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-7xl md:text-[10rem] font-black tracking-tighter leading-[0.85] font-display uppercase italic"
+              className="text-5xl md:text-[10rem] font-black tracking-tighter leading-[0.85] font-display uppercase italic"
             >
               Wealth <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-400 to-blue-600 bg-[length:200%_auto] animate-[gradient_8s_linear_infinite]">Redefined.</span>
@@ -144,7 +144,7 @@ export default function LandingPage({ onGetStarted }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 1 }}
-              className="text-xl text-gray-400 max-w-2xl leading-relaxed font-medium"
+              className="text-sm md:text-xl text-gray-400 max-w-2xl leading-relaxed font-medium px-4"
             >
               Profit Wavy isn't just a platform. It's an institutional-grade ecosystem designed to accelerate your capital through smart, automated waves.
             </motion.p>
@@ -153,21 +153,21 @@ export default function LandingPage({ onGetStarted }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-6 pt-8"
+              className="flex flex-col sm:flex-row gap-4 md:gap-6 pt-4 md:pt-8 w-full sm:w-auto px-4"
             >
               <button 
                 onClick={onGetStarted}
-                className="group relative bg-blue-600 text-white px-12 py-6 rounded-[32px] font-black text-xl hover:bg-blue-700 transition-all shadow-[0_20px_50px_rgba(37,99,235,0.3)] active:scale-95 overflow-hidden"
+                className="group relative bg-blue-600 text-white px-8 md:px-12 py-5 md:py-6 rounded-2xl md:rounded-[32px] font-black text-base md:text-xl hover:bg-blue-700 transition-all shadow-[0_20px_50px_rgba(37,99,235,0.3)] active:scale-95 overflow-hidden"
               >
-                <span className="relative z-10 flex items-center gap-3">
+                <span className="relative z-10 flex items-center justify-center gap-3">
                   Start Your Wave
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                  <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-2 transition-transform" />
                 </span>
                 <motion.div 
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
                 />
               </button>
-              <button className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-12 py-6 rounded-[32px] font-black text-xl hover:bg-white/10 transition-all active:scale-95">
+              <button className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 md:px-12 py-5 md:py-6 rounded-2xl md:rounded-[32px] font-black text-base md:text-xl hover:bg-white/10 transition-all active:scale-95">
                 View Plans
               </button>
             </motion.div>
@@ -180,21 +180,21 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* Stats Ticker */}
-      <div className="py-20 border-y border-white/5 bg-white/[0.02] backdrop-blur-sm">
+      <div className="py-12 md:py-20 border-y border-white/5 bg-white/[0.02] backdrop-blur-sm">
         <div className="container mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
             {[
               { label: "Total Assets", value: "GH₵ 25M+", icon: BarChart3 },
               { label: "Active Waves", value: "12,400+", icon: Zap },
               { label: "Daily Payouts", value: "GH₵ 150k", icon: ArrowUpRight },
               { label: "Security Score", value: "99.9%", icon: ShieldCheck },
             ].map((stat, i) => (
-              <div key={i} className="space-y-2 text-center lg:text-left">
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-blue-500 mb-2">
-                  <stat.icon className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{stat.label}</span>
+              <div key={i} className="space-y-1 md:space-y-2 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start gap-2 text-blue-500 mb-1 md:mb-2">
+                  <stat.icon className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em]">{stat.label}</span>
                 </div>
-                <p className="text-4xl font-black font-display">{stat.value}</p>
+                <p className="text-xl md:text-4xl font-black font-display">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -202,48 +202,48 @@ export default function LandingPage({ onGetStarted }) {
       </div>
 
       {/* Bento Grid Features - Redesigned */}
-      <section id="features" className="py-40 px-6">
+      <section id="features" className="py-20 md:py-40 px-6">
         <div className="container mx-auto max-w-7xl">
-          <div className="mb-24 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="h-px w-20 bg-blue-600" />
-              <span className="text-xs font-black uppercase tracking-[0.5em] text-blue-500">The Ecosystem</span>
+          <div className="mb-16 md:mb-24 space-y-4 md:space-y-6">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="h-px w-12 md:w-20 bg-blue-600" />
+              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-blue-500">The Ecosystem</span>
             </div>
-            <h2 className="text-6xl md:text-8xl font-black tracking-tighter uppercase italic font-display">
+            <h2 className="text-4xl md:text-8xl font-black tracking-tighter uppercase italic font-display">
               Built for <br /> <span className="text-gray-600">Dominance.</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
             {/* Main Feature */}
             <motion.div 
               whileHover={{ y: -10 }}
-              className="md:col-span-8 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[48px] p-12 relative overflow-hidden group"
+              className="md:col-span-8 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-12 relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative z-10 flex flex-col md:flex-row gap-12 items-center">
-                <div className="flex-1 space-y-8">
-                  <div className="bg-blue-600 w-20 h-20 rounded-[24px] flex items-center justify-center shadow-2xl shadow-blue-500/40">
-                    <PieChart className="w-10 h-10 text-white" />
+              <div className="relative z-10 flex flex-col md:flex-row gap-8 md:gap-12 items-center">
+                <div className="flex-1 space-y-6 md:space-y-8">
+                  <div className="bg-blue-600 w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-[24px] flex items-center justify-center shadow-2xl shadow-blue-500/40">
+                    <PieChart className="w-8 h-8 md:w-10 md:h-10 text-white" />
                   </div>
-                  <h3 className="text-4xl font-black font-display uppercase italic">Smart Wave Allocation</h3>
-                  <p className="text-xl text-gray-400 leading-relaxed font-medium">
+                  <h3 className="text-2xl md:text-4xl font-black font-display uppercase italic">Smart Wave Allocation</h3>
+                  <p className="text-base md:text-xl text-gray-400 leading-relaxed font-medium">
                     Our proprietary algorithm dynamically shifts your capital into the highest performing waves, ensuring maximum ROI while maintaining strict risk parameters.
                   </p>
-                  <button className="flex items-center gap-3 text-blue-500 font-black text-xs uppercase tracking-widest group/btn">
+                  <button className="flex items-center gap-3 text-blue-500 font-black text-[10px] md:text-xs uppercase tracking-widest group/btn">
                     Explore Strategy
                     <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />
                   </button>
                 </div>
-                <div className="w-full md:w-64 h-64 bg-black/40 rounded-[32px] border border-white/5 p-6 flex items-center justify-center">
-                  <div className="relative w-full h-full">
+                <div className="w-full md:w-64 h-48 md:h-64 bg-black/40 rounded-2xl md:rounded-[32px] border border-white/5 p-6 flex items-center justify-center">
+                  <div className="relative w-32 h-32 md:w-full md:h-full">
                     <motion.div 
                       animate={{ rotate: 360 }}
                       transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                       className="absolute inset-0 border-4 border-dashed border-blue-600/30 rounded-full"
                     />
                     <div className="absolute inset-4 border-4 border-blue-600 rounded-full flex items-center justify-center">
-                      <TrendingUp className="w-12 h-12 text-blue-600" />
+                      <TrendingUp className="w-8 h-8 md:w-12 md:h-12 text-blue-600" />
                     </div>
                   </div>
                 </div>
@@ -253,38 +253,38 @@ export default function LandingPage({ onGetStarted }) {
             {/* Side Feature */}
             <motion.div 
               whileHover={{ y: -10 }}
-              className="md:col-span-4 bg-blue-600 rounded-[48px] p-12 flex flex-col justify-between text-white shadow-2xl shadow-blue-600/20 group"
+              className="md:col-span-4 bg-blue-600 rounded-[32px] md:rounded-[48px] p-8 md:p-12 flex flex-col justify-between text-white shadow-2xl shadow-blue-600/20 group"
             >
-              <div className="space-y-8">
-                <div className="bg-white/20 backdrop-blur-md w-16 h-16 rounded-[20px] flex items-center justify-center border border-white/20">
-                  <Lock className="w-8 h-8 text-white" />
+              <div className="space-y-6 md:space-y-8">
+                <div className="bg-white/20 backdrop-blur-md w-14 h-14 md:w-16 md:h-16 rounded-xl md:rounded-[20px] flex items-center justify-center border border-white/20">
+                  <Lock className="w-7 h-7 md:w-8 md:h-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-black font-display uppercase italic leading-tight">Vault-Grade Security</h3>
-                <p className="text-blue-100 font-medium leading-relaxed">
+                <h3 className="text-2xl md:text-3xl font-black font-display uppercase italic leading-tight">Vault-Grade Security</h3>
+                <p className="text-sm md:text-blue-100 font-medium leading-relaxed">
                   Multi-sig wallets, 2FA, and institutional custody. Your wealth is locked in a digital fortress.
                 </p>
               </div>
-              <div className="pt-8 flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Secure / 02</span>
-                <ShieldCheck className="w-6 h-6 opacity-50" />
+              <div className="pt-6 md:pt-8 flex items-center justify-between">
+                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-50">Secure / 02</span>
+                <ShieldCheck className="w-5 h-5 md:w-6 md:h-6 opacity-50" />
               </div>
             </motion.div>
 
             {/* Bottom Row */}
             <motion.div 
               whileHover={{ y: -10 }}
-              className="md:col-span-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[48px] p-10 flex flex-col justify-between group"
+              className="md:col-span-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-10 flex flex-col justify-between group"
             >
-              <div className="space-y-6">
-                <div className="bg-orange-500 w-14 h-14 rounded-[18px] flex items-center justify-center shadow-xl shadow-orange-500/20">
-                  <Smartphone className="w-7 h-7 text-white" />
+              <div className="space-y-4 md:space-y-6">
+                <div className="bg-orange-500 w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-[18px] flex items-center justify-center shadow-xl shadow-orange-500/20">
+                  <Smartphone className="w-6 h-6 md:w-7 md:h-7 text-white" />
                 </div>
-                <h3 className="text-2xl font-black font-display uppercase italic">Instant Mobile Payouts</h3>
-                <p className="text-gray-400 font-medium leading-relaxed">
+                <h3 className="text-xl md:text-2xl font-black font-display uppercase italic">Instant Mobile Payouts</h3>
+                <p className="text-sm md:text-gray-400 font-medium leading-relaxed">
                   Withdraw your returns directly to your mobile wallet in seconds. No delays, just liquidity.
                 </p>
               </div>
-              <div className="pt-8 flex items-center gap-2">
+              <div className="pt-6 md:pt-8 flex items-center gap-2">
                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                   <motion.div 
                     animate={{ x: ["-100%", "100%"] }}
@@ -297,26 +297,26 @@ export default function LandingPage({ onGetStarted }) {
 
             <motion.div 
               whileHover={{ y: -10 }}
-              className="md:col-span-8 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[48px] p-12 flex flex-col md:flex-row gap-12 items-center relative overflow-hidden group"
+              className="md:col-span-8 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[32px] md:rounded-[48px] p-8 md:p-12 flex flex-col md:flex-row gap-8 md:gap-12 items-center relative overflow-hidden group"
             >
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-              <div className="relative z-10 flex-1 space-y-6">
-                <h3 className="text-4xl font-black font-display uppercase italic text-white">AI-Driven Insights</h3>
-                <p className="text-indigo-100 text-lg font-medium leading-relaxed">
+              <div className="relative z-10 flex-1 space-y-4 md:space-y-6">
+                <h3 className="text-2xl md:text-4xl font-black font-display uppercase italic text-white">AI-Driven Insights</h3>
+                <p className="text-sm md:text-indigo-100 md:text-lg font-medium leading-relaxed">
                   Our Gemini-powered engine analyzes global markets 24/7 to provide you with actionable insights and predictive performance data.
                 </p>
-                <div className="flex gap-4">
-                  <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10">Predictive</div>
-                  <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10">Real-time</div>
+                <div className="flex gap-3 md:gap-4">
+                  <div className="bg-white/10 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/10">Predictive</div>
+                  <div className="bg-white/10 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/10">Real-time</div>
                 </div>
               </div>
-              <div className="relative w-48 h-48 flex items-center justify-center">
+              <div className="relative w-32 h-32 md:w-48 md:h-48 flex items-center justify-center">
                 <motion.div 
                   animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute inset-0 bg-white/20 rounded-full blur-3xl"
+                  className="absolute inset-0 bg-white/20 rounded-full blur-2xl md:blur-3xl"
                 />
-                <Zap className="w-20 h-20 text-white relative z-10" />
+                <Zap className="w-12 h-12 md:w-20 md:h-20 text-white relative z-10" />
               </div>
             </motion.div>
           </div>
@@ -324,38 +324,38 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* How it Works - Editorial Style */}
-      <section className="py-40 bg-white text-black relative overflow-hidden">
+      <section className="py-20 md:py-40 bg-white text-black relative overflow-hidden">
         <div className="container mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
-            <div className="lg:col-span-5 space-y-12">
-              <div className="space-y-6">
-                <span className="text-xs font-black uppercase tracking-[0.5em] text-blue-600">The Blueprint</span>
-                <h2 className="text-7xl font-black tracking-tighter uppercase italic font-display leading-[0.85]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20">
+            <div className="lg:col-span-5 space-y-8 md:space-y-12">
+              <div className="space-y-4 md:space-y-6">
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-blue-600">The Blueprint</span>
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic font-display leading-[0.85]">
                   How to <br /> Catch the <br /> <span className="text-blue-600">Wave.</span>
                 </h2>
               </div>
-              <p className="text-xl text-gray-500 font-medium leading-relaxed">
+              <p className="text-base md:text-xl text-gray-500 font-medium leading-relaxed">
                 We've stripped away the complexity of traditional investing. Three steps to financial dominance.
               </p>
               <button 
                 onClick={onGetStarted}
-                className="bg-black text-white px-10 py-5 rounded-[24px] font-black text-lg uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95"
+                className="w-full sm:w-auto bg-black text-white px-8 md:px-10 py-4 md:py-5 rounded-2xl md:rounded-[24px] font-black text-base md:text-lg uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95"
               >
                 Get Started Now
               </button>
             </div>
 
-            <div className="lg:col-span-7 space-y-12">
+            <div className="lg:col-span-7 space-y-8 md:space-y-12">
               {[
                 { step: "01", title: "Deploy Capital", desc: "Choose your wave plan and fund your account via secure mobile money or card integration." },
                 { step: "02", title: "Automated Growth", desc: "Our ecosystem allocates your capital into high-yield assets, generating daily returns automatically." },
                 { step: "03", title: "Instant Liquidity", desc: "Withdraw your profits at any time. Your wealth is always accessible, always moving." },
               ].map((item, i) => (
-                <div key={i} className="group flex gap-12 items-start border-b border-gray-100 pb-12 last:border-0 transition-all hover:pl-4">
-                  <span className="text-6xl font-black font-display text-gray-100 group-hover:text-blue-600 transition-colors duration-500">{item.step}</span>
-                  <div className="space-y-4 pt-2">
-                    <h3 className="text-3xl font-black font-display uppercase italic">{item.title}</h3>
-                    <p className="text-lg text-gray-500 font-medium leading-relaxed max-w-md">{item.desc}</p>
+                <div key={i} className="group flex gap-6 md:gap-12 items-start border-b border-gray-100 pb-8 md:pb-12 last:border-0 transition-all hover:pl-2 md:hover:pl-4">
+                  <span className="text-4xl md:text-6xl font-black font-display text-gray-100 group-hover:text-blue-600 transition-colors duration-500">{item.step}</span>
+                  <div className="space-y-2 md:space-y-4 pt-1 md:pt-2">
+                    <h3 className="text-xl md:text-3xl font-black font-display uppercase italic">{item.title}</h3>
+                    <p className="text-sm md:text-lg text-gray-500 font-medium leading-relaxed max-w-md">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -365,16 +365,16 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* Testimonials - Premium Grid */}
-      <section className="py-40 px-6 bg-[#050505]">
+      <section className="py-20 md:py-40 px-6 bg-[#050505]">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-32 space-y-6">
-            <span className="text-xs font-black uppercase tracking-[0.5em] text-blue-500">Wall of Dominance</span>
-            <h2 className="text-6xl md:text-8xl font-black tracking-tighter uppercase italic font-display">
+          <div className="text-center mb-16 md:mb-32 space-y-4 md:space-y-6">
+            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-blue-500">Wall of Dominance</span>
+            <h2 className="text-4xl md:text-8xl font-black tracking-tighter uppercase italic font-display">
               The Wave <span className="text-gray-600">Effect.</span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               {
                 name: "Kwame Mensah",
@@ -398,17 +398,17 @@ export default function LandingPage({ onGetStarted }) {
               <motion.div
                 key={i}
                 whileHover={{ y: -10 }}
-                className="bg-white/5 backdrop-blur-3xl border border-white/10 p-12 rounded-[48px] space-y-8 relative overflow-hidden group"
+                className="bg-white/5 backdrop-blur-3xl border border-white/10 p-8 md:p-12 rounded-[32px] md:rounded-[48px] space-y-6 md:space-y-8 relative overflow-hidden group"
               >
-                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-30 transition-opacity">
-                  <Star className="w-12 h-12 text-blue-500" />
+                <div className="absolute top-0 right-0 p-6 md:p-8 opacity-10 group-hover:opacity-30 transition-opacity">
+                  <Star className="w-8 h-8 md:w-12 md:h-12 text-blue-500" />
                 </div>
-                <p className="text-xl text-gray-300 font-medium italic leading-relaxed relative z-10">"{t.content}"</p>
-                <div className="flex items-center gap-4 relative z-10">
-                  <img src={t.avatar} alt={t.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/10" referrerPolicy="no-referrer" />
+                <p className="text-base md:text-xl text-gray-300 font-medium italic leading-relaxed relative z-10">"{t.content}"</p>
+                <div className="flex items-center gap-3 md:gap-4 relative z-10">
+                  <img src={t.avatar} alt={t.name} className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl object-cover border-2 border-white/10" referrerPolicy="no-referrer" />
                   <div>
-                    <p className="font-black text-lg font-display uppercase italic">{t.name}</p>
-                    <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">{t.role}</p>
+                    <p className="font-black text-base md:text-lg font-display uppercase italic">{t.name}</p>
+                    <p className="text-[8px] md:text-[10px] text-blue-500 font-black uppercase tracking-widest">{t.role}</p>
                   </div>
                 </div>
               </motion.div>
@@ -418,36 +418,36 @@ export default function LandingPage({ onGetStarted }) {
       </section>
 
       {/* Final CTA - Brutalist Style */}
-      <section className="py-40 px-6 relative overflow-hidden">
+      <section className="py-20 md:py-40 px-6 relative overflow-hidden">
         <div className="container mx-auto max-w-7xl">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="bg-blue-600 rounded-[64px] p-12 lg:p-32 text-center relative overflow-hidden shadow-[0_50px_100px_rgba(37,99,235,0.4)]"
+            className="bg-blue-600 rounded-[48px] md:rounded-[64px] p-8 md:p-12 lg:p-32 text-center relative overflow-hidden shadow-[0_50px_100px_rgba(37,99,235,0.4)]"
           >
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-            <div className="relative z-10 space-y-12">
-              <h2 className="text-6xl md:text-9xl font-black text-white tracking-tighter uppercase italic font-display leading-[0.8]">
+            <div className="relative z-10 space-y-8 md:space-y-12">
+              <h2 className="text-4xl md:text-9xl font-black text-white tracking-tighter uppercase italic font-display leading-[0.8]">
                 Don't Miss <br /> The Wave.
               </h2>
-              <p className="text-2xl text-blue-100 font-medium max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg md:text-2xl text-blue-100 font-medium max-w-2xl mx-auto leading-relaxed">
                 Join 50,000+ investors who are already riding the wave to financial dominance. Your future self is waiting.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                 <button 
                   onClick={onGetStarted}
-                  className="w-full sm:w-auto bg-white text-blue-600 px-16 py-8 rounded-[32px] font-black text-2xl uppercase tracking-widest hover:bg-blue-50 transition-all shadow-2xl active:scale-95"
+                  className="w-full sm:w-auto bg-white text-blue-600 px-10 md:px-16 py-5 md:py-8 rounded-2xl md:rounded-[32px] font-black text-xl md:text-2xl uppercase tracking-widest hover:bg-blue-50 transition-all shadow-2xl active:scale-95"
                 >
                   Join Now
                 </button>
                 <div className="flex flex-col items-center sm:items-start text-blue-200">
                   <div className="flex -space-x-2 mb-2">
                     {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-blue-600 bg-blue-400" />
+                      <div key={i} className="w-6 h-6 md:w-8 md:h-8 rounded-full border-2 border-blue-600 bg-blue-400" />
                     ))}
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest">500+ Joined Today</span>
+                  <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest">500+ Joined Today</span>
                 </div>
               </div>
             </div>

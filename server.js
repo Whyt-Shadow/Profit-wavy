@@ -10,7 +10,11 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://profitwavy:Arm1bhixion@cluster0.xc3fumg.mongodb.net/?appName=Cluster0";
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error("CRITICAL: MONGODB_URI is not defined in environment variables.");
+}
 
 async function startServer() {
   const app = express();
@@ -25,9 +29,13 @@ async function startServer() {
   });
 
   // MongoDB Connection (non-blocking)
-  mongoose.connect(MONGODB_URI)
-    .then(() => console.log("Connected to MongoDB"))
-    .catch(error => console.error("MongoDB connection error:", error));
+  if (MONGODB_URI) {
+    mongoose.connect(MONGODB_URI)
+      .then(() => console.log("Connected to MongoDB"))
+      .catch(error => console.error("MongoDB connection error:", error));
+  } else {
+    console.warn("Skipping MongoDB connection: MONGODB_URI is missing.");
+  }
 
   // API routes
   app.get("/api/test", (req, res) => {
@@ -85,8 +93,13 @@ async function startServer() {
       if (user) {
         if (type === 'investment') {
           user.totalInvested += amount;
+          user.balance -= amount; // Deduct from balance when investing
         } else if (type === 'return') {
           user.totalReturns += amount;
+        } else if (type === 'deposit') {
+          user.balance += amount;
+        } else if (type === 'withdrawal') {
+          user.balance -= amount;
         }
         await user.save();
       }

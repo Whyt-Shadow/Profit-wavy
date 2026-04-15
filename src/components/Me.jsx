@@ -30,8 +30,8 @@ export default function Me({ user }) {
         />
       </div>
 
-      <div className="space-y-12 pb-32 pt-12 px-4 max-w-3xl mx-auto relative z-10">
-        <div className="flex flex-col items-center text-center space-y-8">
+      <div className="space-y-8 md:space-y-12 pb-32 pt-12 px-4 max-w-3xl mx-auto relative z-10">
+        <div className="flex flex-col items-center text-center space-y-6 md:space-y-8">
           <div className="relative group">
             <motion.div 
               animate={{ rotate: 360 }}
@@ -42,47 +42,47 @@ export default function Me({ user }) {
               <img 
                 src={user.photoURL} 
                 alt={user.displayName || 'Me'} 
-                className="w-32 h-32 rounded-[40px] border-4 border-white/10 shadow-2xl relative z-10 object-cover"
+                className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] border-4 border-white/10 shadow-2xl relative z-10 object-cover"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-32 h-32 rounded-[40px] bg-blue-600 flex items-center justify-center text-white text-5xl font-black border-4 border-white/10 shadow-2xl relative z-10 font-display italic">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-[32px] md:rounded-[40px] bg-blue-600 flex items-center justify-center text-white text-4xl md:text-5xl font-black border-4 border-white/10 shadow-2xl relative z-10 font-display italic">
                 {user.displayName?.[0] || user.email?.[0]}
               </div>
             )}
-            <div className="absolute bottom-2 right-2 bg-green-500 w-8 h-8 rounded-2xl border-4 border-[#050505] z-20 shadow-lg" />
+            <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-green-500 w-6 h-6 md:w-8 md:h-8 rounded-xl md:rounded-2xl border-4 border-[#050505] z-20 shadow-lg" />
           </div>
           
-          <div className="space-y-2">
-            <h2 className="text-4xl font-black tracking-tighter uppercase italic font-display">{user.displayName || 'Investor'}</h2>
-            <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-1.5 rounded-full">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{user.email}</span>
+          <div className="space-y-1 md:space-y-2">
+            <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase italic font-display">{user.displayName || 'Investor'}</h2>
+            <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 rounded-full">
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{user.email}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[48px] overflow-hidden shadow-2xl">
+        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] overflow-hidden shadow-2xl">
           {menuItems.map((item, index) => (
             <button 
               key={item.label}
-              className={`w-full flex items-center justify-between p-8 hover:bg-white/[0.05] transition-all group ${
+              className={`w-full flex items-center justify-between p-6 md:p-8 hover:bg-white/[0.05] transition-all group ${
                 index !== menuItems.length - 1 ? 'border-b border-white/5' : ''
               }`}
             >
-              <div className="flex items-center gap-6">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg ${item.bg.replace('bg-', 'bg-opacity-20 bg-')}`}>
-                  <item.icon className={`w-7 h-7 ${item.color}`} />
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg ${item.bg.replace('bg-', 'bg-opacity-20 bg-')}`}>
+                  <item.icon className={`w-6 h-6 md:w-7 md:h-7 ${item.color}`} />
                 </div>
-                <span className="font-black text-lg font-display uppercase italic tracking-tight text-gray-200 group-hover:text-white transition-colors">{item.label}</span>
+                <span className="font-black text-base md:text-lg font-display uppercase italic tracking-tight text-gray-200 group-hover:text-white transition-colors">{item.label}</span>
               </div>
-              <ChevronRight className="w-6 h-6 text-gray-600 group-hover:text-blue-500 group-hover:translate-x-2 transition-all" />
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-gray-600 group-hover:text-blue-500 group-hover:translate-x-2 transition-all" />
             </button>
           ))}
         </div>
 
         <button 
           onClick={handleSignOut}
-          className="w-full bg-red-500/10 text-red-500 border border-red-500/20 font-black py-6 rounded-[32px] flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all group shadow-xl shadow-red-500/5 active:scale-[0.98] uppercase tracking-[0.3em] text-xs"
+          className="w-full bg-red-500/10 text-red-500 border border-red-500/20 font-black py-5 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all group shadow-xl shadow-red-500/5 active:scale-[0.98] uppercase tracking-[0.3em] text-[10px] md:text-xs"
         >
           <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           Terminate Session

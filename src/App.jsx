@@ -86,7 +86,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard user={user} />;
+        return <Dashboard user={user} setActiveTab={setActiveTab} />;
       case 'products':
         return <Products onInvest={(plan) => setSelectedPlan(plan)} />;
       case 'me':
@@ -156,7 +156,6 @@ export default function App() {
                 </motion.div>
               </AnimatePresence>
             </main>
-            <Footer />
             <BottomNav 
               activeTab={activeTab} 
               setActiveTab={(tab) => {

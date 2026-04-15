@@ -121,24 +121,24 @@ export default function Products({ onInvest }) {
         />
       </div>
 
-      <div className="flex flex-col items-center space-y-16 pb-32 pt-12 px-4 max-w-7xl mx-auto relative z-10">
-        <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-4">
-            <div className="h-px w-12 bg-blue-600" />
-            <span className="text-xs font-black uppercase tracking-[0.5em] text-blue-500">Capital Deployment</span>
-            <div className="h-px w-12 bg-blue-600" />
+      <div className="flex flex-col items-center space-y-12 md:space-y-16 pb-32 pt-12 px-4 max-w-7xl mx-auto relative z-10">
+        <div className="text-center space-y-4 md:space-y-6">
+          <div className="flex items-center justify-center gap-3 md:gap-4">
+            <div className="h-px w-8 md:w-12 bg-blue-600" />
+            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-blue-500">Capital Deployment</span>
+            <div className="h-px w-8 md:w-12 bg-blue-600" />
           </div>
-          <h1 className="text-6xl font-black tracking-tighter uppercase italic font-display">
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic font-display">
             Investment <span className="text-gray-600">Waves.</span>
           </h1>
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-8 py-4 rounded-3xl max-w-2xl mx-auto">
-            <p className="text-gray-400 font-medium text-sm sm:text-lg leading-relaxed">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-6 md:px-8 py-3 md:py-4 rounded-2xl md:rounded-3xl max-w-2xl mx-auto">
+            <p className="text-gray-400 font-medium text-xs md:text-lg leading-relaxed">
               Select an institutional-grade wave plan tailored to your capital growth objectives.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 w-full">
           {plans.map((plan, i) => (
             <motion.div
               key={plan.id}

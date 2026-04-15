@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Sparkles, RefreshCw, AlertCircle, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../lib/utils';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -107,8 +108,4 @@ export default function AIInsights({ stats }) {
       </div>
     </div>
   );
-}
-
-function cn(...inputs) {
-  return inputs.filter(Boolean).join(' ');
 }
