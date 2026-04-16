@@ -8,7 +8,7 @@ export default function Products({ onInvest }) {
       name: 'Flash Plan',
       min: 'GH₵ 50',
       returns: '30%',
-      duration: 'Every 10 Mins',
+      duration: 'Every 5 Mins',
       popular: true,
       color: 'from-amber-500 to-orange-600',
       icon: Zap,
