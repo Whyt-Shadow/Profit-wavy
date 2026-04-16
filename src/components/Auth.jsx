@@ -296,7 +296,7 @@ export default function Auth() {
               htmlFor="terms" 
               className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed cursor-pointer select-none transition-colors duration-300"
             >
-              I agree to the <button type="button" onClick={() => openTerms("Terms and Conditions")} className="text-blue-500 hover:underline">Terms</button> and <button type="button" onClick={() => openTerms("Privacy Policy")} className="text-blue-500 hover:underline">Privacy Policy</button>.
+              I accept the <button type="button" onClick={() => openTerms("Terms and Conditions")} className="text-blue-500 hover:underline">Terms and Conditions</button> and <button type="button" onClick={() => openTerms("Privacy Policy")} className="text-blue-500 hover:underline">Privacy Policy</button>.
             </label>
           </div>
         )}

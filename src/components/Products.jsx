@@ -8,6 +8,8 @@ export default function Products({ onInvest }) {
       name: 'Starter Plan',
       min: 'GH₵ 100',
       returns: 'GH₵ 25',
+      assets: 'Agricultural Commodities',
+      image: 'https://picsum.photos/seed/agriculture/600/400',
       popular: true,
       color: 'from-blue-600 to-blue-700',
       icon: Zap
@@ -17,6 +19,8 @@ export default function Products({ onInvest }) {
       name: 'Silver Plan',
       min: 'GH₵ 300',
       returns: 'GH₵ 75',
+      assets: 'Fintech Emerging Markets',
+      image: 'https://picsum.photos/seed/fintech/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: Star
@@ -26,6 +30,8 @@ export default function Products({ onInvest }) {
       name: 'Gold Plan',
       min: 'GH₵ 500',
       returns: 'GH₵ 125',
+      assets: 'Sustainable Energy',
+      image: 'https://picsum.photos/seed/energy/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: ShieldCheck
@@ -35,6 +41,8 @@ export default function Products({ onInvest }) {
       name: 'Platinum Plan',
       min: 'GH₵ 800',
       returns: 'GH₵ 200',
+      assets: 'AI & Cloud Computing',
+      image: 'https://picsum.photos/seed/ai-tech/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: Zap
@@ -44,6 +52,8 @@ export default function Products({ onInvest }) {
       name: 'Diamond Plan',
       min: 'GH₵ 1000',
       returns: 'GH₵ 250',
+      assets: 'Real Estate Development',
+      image: 'https://picsum.photos/seed/realestate/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: TrendingUp
@@ -53,6 +63,8 @@ export default function Products({ onInvest }) {
       name: 'Executive Plan',
       min: 'GH₵ 1500',
       returns: 'GH₵ 375',
+      assets: 'Luxury Hospitality',
+      image: 'https://picsum.photos/seed/luxury-hotel/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: Star
@@ -62,6 +74,8 @@ export default function Products({ onInvest }) {
       name: 'Premium Plan',
       min: 'GH₵ 2000',
       returns: 'GH₵ 500',
+      assets: 'Global Blue Chips',
+      image: 'https://picsum.photos/seed/bluechip/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: ShieldCheck
@@ -71,6 +85,8 @@ export default function Products({ onInvest }) {
       name: 'Elite Plan',
       min: 'GH₵ 3000',
       returns: 'GH₵ 750',
+      assets: 'Venture Capital',
+      image: 'https://picsum.photos/seed/venture/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: Zap
@@ -80,6 +96,8 @@ export default function Products({ onInvest }) {
       name: 'Legacy Plan',
       min: 'GH₵ 5000',
       returns: 'GH₵ 1250',
+      assets: 'Multi-generational Wealth Fund',
+      image: 'https://picsum.photos/seed/wealth/600/400',
       popular: false,
       color: 'from-slate-700 to-slate-800',
       icon: TrendingUp
@@ -155,6 +173,16 @@ export default function Products({ onInvest }) {
 
               {/* Body */}
               <div className="p-10 flex flex-col items-center space-y-8 flex-1 relative z-10">
+                {/* Product Image */}
+                <div className="w-full aspect-video rounded-3xl overflow-hidden border border-white/10 group-hover:border-blue-500/30 transition-all duration-500">
+                  <img 
+                    src={plan.image} 
+                    alt={plan.assets} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+
                 <div className="bg-white/5 w-full py-6 rounded-[32px] text-center border border-white/5 group-hover:border-blue-500/30 transition-colors">
                   <p className="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Minimum Stake</p>
                   <p className="text-white text-4xl font-black font-display italic tracking-tighter">{plan.min}</p>
@@ -164,6 +192,10 @@ export default function Products({ onInvest }) {
                   <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                     <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Daily ROI</span>
                     <span className="text-green-500 font-black font-display text-xl">{plan.returns}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Investable Product</span>
+                    <span className="text-blue-400 font-bold text-[10px] uppercase text-right">{plan.assets}</span>
                   </div>
                   {plan.duration && (
                     <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
