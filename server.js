@@ -17,25 +17,28 @@ if (!MONGODB_URI) {
 }
 
 async function startServer() {
-  const app = express();
-  const PORT = process.env.PORT || 3000;
+  try {
+    const app = express();
+    const PORT = process.env.PORT || 3000;
 
-  app.use(express.json());
- 
-  // MongoDB Connection Status Middleware
-  const checkMongoConnection = (req, res, next) => {
-    if (mongoose.connection.readyState !== 1 && req.path.startsWith('/api/') && !['/api/health', '/api/test'].includes(req.path)) {
-      return res.status(503).json({ error: "Database connection is not ready. Please check MONGODB_URI." });
-    }
-    next();
-  };
-  app.use(checkMongoConnection);
+    app.use(express.json());
+   
+    // MongoDB Connection Status Middleware
+    const checkMongoConnection = (req, res, next) => {
+      const isPublicRoute = ['/api/health', '/api/test', '/api/system/status'].includes(req.path);
+      if (mongoose.connection.readyState !== 1 && req.path.startsWith('/api/') && !isPublicRoute) {
+        console.warn(`[DB-GUARD] Service Unavailable: DB not connected for ${req.path}`);
+        return res.status(503).json({ error: "Database connection is not ready. Please check MONGODB_URI." });
+      }
+      next();
+    };
+    app.use(checkMongoConnection);
 
-  // Request logging middleware
-  app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-  });
+    // Request logging middleware
+    app.use((req, res, next) => {
+      console.log(`[REQ] ${new Date().toISOString()} - ${req.method} ${req.url}`);
+      next();
+    });
 
   // MongoDB Connection (non-blocking)
   if (MONGODB_URI) {
@@ -134,6 +137,7 @@ async function startServer() {
 
   // Health check with DB status
   app.get("/api/system/status", async (req, res) => {
+    console.log("[API] Hit /api/system/status");
     try {
       res.json({ 
         status: "ok", 
@@ -141,12 +145,14 @@ async function startServer() {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
+      console.error("[API] Error in /api/system/status:", error);
       res.status(500).json({ status: "error" });
     }
   });
 
   // Manual Bonus Claim
   app.post("/api/users/:uid/claim-bonus", async (req, res) => {
+    console.log(`[API] Hit /api/users/${req.params.uid}/claim-bonus`);
     try {
       const { uid } = req.params;
       const user = await User.findOne({ uid });
@@ -168,18 +174,20 @@ async function startServer() {
       const updatedUser = await User.findOne({ uid });
       res.json({ message: "Bonus claimed successfully", balance: updatedUser.balance });
     } catch (error) {
+      console.error("[API] Error in claim-bonus:", error);
       res.status(500).json({ error: "Failed to claim bonus" });
     }
   });
 
   // Get User Data
   app.get("/api/users/:uid", async (req, res) => {
-    console.log(`Fetching user data for UID: ${req.params.uid}`);
+    console.log(`[API] Hit /api/users/${req.params.uid}`);
     try {
       const user = await User.findOne({ uid: req.params.uid });
       if (!user) return res.status(404).json({ error: "User not found" });
       res.json(user);
     } catch (error) {
+      console.error(`[API] Error in get user ${req.params.uid}:`, error);
       res.status(500).json({ error: "Failed to fetch user" });
     }
   });
@@ -338,7 +346,15 @@ async function startServer() {
 
   app.listen(Number(PORT), "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`MongoDB URI defined: ${!!MONGODB_URI}`);
   });
+  } catch (err) {
+    console.error("FATAL: Failed to start server:", err);
+    process.exit(1);
+  }
 }
 
-startServer();
+startServer().catch(err => {
+  console.error("CRITICAL: Unhandled error in startServer chain:", err);
+});

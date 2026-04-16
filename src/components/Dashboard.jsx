@@ -50,6 +50,9 @@ export default function Dashboard({ user, setActiveTab }) {
           setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
           return;
         }
+      } else {
+        const text = await statusRes.text();
+        console.error("DASHBOARD: System status check failed with non-OK status. Content:", text.substring(0, 100));
       }
     } catch (e) {
       console.warn("System status check failed", e);
@@ -60,7 +63,14 @@ export default function Dashboard({ user, setActiveTab }) {
       // Fetch User Data from MongoDB
       const userRes = await fetch(`/api/users/${user.uid}`);
       if (userRes.ok) {
-        const userData = await userRes.json();
+        let userData;
+        try {
+          userData = await userRes.json();
+        } catch (jsonErr) {
+          const text = await userRes.text();
+          console.error("DASHBOARD: User data JSON parse failed. Response text:", text.substring(0, 500));
+          throw jsonErr;
+        }
         console.log("DASHBOARD: User data loaded:", {
           balance: userData.balance,
           totalReturns: userData.totalReturns,
@@ -79,7 +89,14 @@ export default function Dashboard({ user, setActiveTab }) {
       // Fetch Transactions from MongoDB
       const txRes = await fetch(`/api/transactions/${user.uid}`);
       if (txRes.ok) {
-        const txData = await txRes.json();
+        let txData;
+        try {
+          txData = await txRes.json();
+        } catch (jsonErr) {
+          const text = await txRes.text();
+          console.error("DASHBOARD: Transactions JSON parse failed. Response text:", text.substring(0, 500));
+          throw jsonErr;
+        }
         setRecentReturns(txData.map((tx) => ({
           id: tx._id,
           name: tx.planName || tx.type,
