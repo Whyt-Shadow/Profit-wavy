@@ -361,11 +361,11 @@ async function startServer() {
         } else if (type === 'deposit') {
           user.balance += amount;
 
-          // Handle Referral Bonus (0.05% of deposit to the referrer)
+          // Handle Referral Bonus (5% of deposit to the referrer)
           if (user.referredBy) {
             const referrer = await User.findOne({ referralCode: user.referredBy });
             if (referrer) {
-              const refBonus = amount * 0.0005; // 0.05%
+              const refBonus = amount * 0.05; // 5%
               referrer.balance += refBonus;
               await referrer.save();
               await Transaction.create({

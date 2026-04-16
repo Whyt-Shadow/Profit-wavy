@@ -44,15 +44,19 @@ export default function Dashboard({ user, setActiveTab }) {
     // Check system status first to see if DB is actually connected
     try {
       const statusRes = await fetch('/api/system/status');
+      const statusText = await statusRes.text();
       if (statusRes.ok) {
-        const status = await statusRes.json();
-        if (status.db === 'disconnected') {
-          setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
-          return;
+        try {
+          const status = JSON.parse(statusText);
+          if (status.db === 'disconnected') {
+            setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
+            return;
+          }
+        } catch (e) {
+          console.error("DASHBOARD: Failed to parse status JSON", e);
         }
       } else {
-        const text = await statusRes.text();
-        console.error("DASHBOARD: System status check failed with non-OK status. Content:", text.substring(0, 100));
+        console.error("DASHBOARD: System status check failed. Content:", statusText.substring(0, 100));
       }
     } catch (e) {
       console.warn("System status check failed", e);
@@ -62,56 +66,69 @@ export default function Dashboard({ user, setActiveTab }) {
     try {
       // Fetch User Data from MongoDB
       const userRes = await fetch(`/api/users/${user.uid}`);
+      const userText = await userRes.text();
+      
       if (userRes.ok) {
         let userData;
         try {
-          userData = await userRes.json();
+          userData = JSON.parse(userText);
+          console.log("DASHBOARD: User data loaded:", {
+            balance: userData.balance,
+            totalReturns: userData.totalReturns,
+            totalInvested: userData.totalInvested
+          });
+          setTotalBalance(userData.balance + userData.totalReturns);
+          setInvested(userData.totalInvested);
+          setAvailableCash(userData.balance);
+          setActiveReturns(userData.totalReturns);
         } catch (jsonErr) {
-          const text = await userRes.text();
-          console.error("DASHBOARD: User data JSON parse failed. Response text:", text.substring(0, 500));
+          console.error("DASHBOARD: User data JSON parse failed. Response text:", userText.substring(0, 500));
           throw jsonErr;
         }
-        console.log("DASHBOARD: User data loaded:", {
-          balance: userData.balance,
-          totalReturns: userData.totalReturns,
-          totalInvested: userData.totalInvested
-        });
-        setTotalBalance(userData.balance + userData.totalReturns);
-        setInvested(userData.totalInvested);
-        setAvailableCash(userData.balance);
-        setActiveReturns(userData.totalReturns);
       } else {
-        const errorData = await userRes.json().catch(() => ({ error: 'Unknown server error' }));
-        console.error("Server error fetching user:", errorData.error);
-        if (userRes.status === 503) setDbError(errorData.error);
+        try {
+          const errorData = JSON.parse(userText);
+          console.error("Server error fetching user:", errorData.error);
+          if (userRes.status === 503) setDbError(errorData.error);
+        } catch (e) {
+          console.error("Server error fetching user (not JSON):", userText.substring(0, 100));
+        }
       }
 
       // Fetch Transactions from MongoDB
       const txRes = await fetch(`/api/transactions/${user.uid}`);
+      const txText = await txRes.text();
+
       if (txRes.ok) {
         let txData;
         try {
-          txData = await txRes.json();
+          txData = JSON.parse(txText);
+          setRecentReturns(txData.map((tx) => ({
+            id: tx._id,
+            name: tx.planName || tx.type,
+            amount: tx.amount,
+            type: tx.type === 'investment' || tx.type === 'withdrawal' ? 'loss' : 'gain',
+            date: new Date(tx.timestamp).toLocaleDateString()
+          })));
         } catch (jsonErr) {
-          const text = await txRes.text();
-          console.error("DASHBOARD: Transactions JSON parse failed. Response text:", text.substring(0, 500));
+          console.error("DASHBOARD: Transactions JSON parse failed. Response text:", txText.substring(0, 500));
           throw jsonErr;
         }
-        setRecentReturns(txData.map((tx) => ({
-          id: tx._id,
-          name: tx.planName || tx.type,
-          amount: tx.amount,
-          type: tx.type === 'investment' || tx.type === 'withdrawal' ? 'loss' : 'gain',
-          date: new Date(tx.timestamp).toLocaleDateString()
-        })));
       } else {
-        const errorData = await txRes.json().catch(() => ({ error: 'Unknown server error' }));
-        console.error("Server error fetching transactions:", errorData.error);
-        if (txRes.status === 503) setDbError(errorData.error);
+        try {
+          const errorData = JSON.parse(txText);
+          console.error("Server error fetching transactions:", errorData.error);
+          if (txRes.status === 503) setDbError(errorData.error);
+        } catch (e) {
+          console.error("Server error fetching transactions (not JSON):", txText.substring(0, 100));
+        }
       }
     } catch (error) {
       console.error("Network error fetching data from MongoDB:", error);
-      setDbError("Network error. Please check your connection.");
+      // Only show error if it's not a background refresh failure to avoid persistent UI flickers
+      if (recentReturns.length === 0) {
+        setDbError("Network error. Please check your connection.");
+      }
     }
   };
 

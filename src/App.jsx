@@ -47,19 +47,35 @@ export default function App() {
               referralCode: referralCode || undefined
             }),
           });
+          
+          const syncText = await syncRes.text();
+          
           if (syncRes.ok) {
-            const syncedUser = await syncRes.json();
-            console.log("User synced successfully with MongoDB:", syncedUser);
-            // Dispatch event to notify dashboard
-            window.dispatchEvent(new CustomEvent('user-synced'));
-            // Clear referral code after successful sync
-            localStorage.removeItem('referralCode');
-            setIsSynced(true);
-            setSyncError(null);
+            try {
+              const syncedUser = JSON.parse(syncText);
+              console.log("User synced successfully with MongoDB:", syncedUser);
+              // Dispatch event to notify dashboard
+              window.dispatchEvent(new CustomEvent('user-synced'));
+              // Clear referral code after successful sync
+              localStorage.removeItem('referralCode');
+              setIsSynced(true);
+              setSyncError(null);
+            } catch (jsonErr) {
+              console.error("Sync response JSON parse failed:", jsonErr);
+              setSyncError("Synchronization data corruption.");
+            }
           } else {
-            const errorData = await syncRes.json().catch(() => ({ error: 'Unknown server error' }));
-            console.error("Server error syncing user:", errorData.error);
-            setSyncError(errorData.error);
+            let errorMsg = 'Unknown server error';
+            try {
+              const errorData = JSON.parse(syncText);
+              errorMsg = errorData.error || errorMsg;
+            } catch (e) {
+              console.error("Sync error response (not JSON):", syncText.substring(0, 100));
+            }
+            
+            console.error("Server error syncing user:", errorMsg);
+            setSyncError(errorMsg);
+            
             // If it's a 503, definitely don't mark as synced yet
             if (syncRes.status !== 503) {
               setIsSynced(true); // Allow proceeding for other errors to avoid infinite loading

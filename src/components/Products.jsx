@@ -4,17 +4,6 @@ import { Check, TrendingUp, Zap, Star, ShieldCheck, ArrowRight } from 'lucide-re
 export default function Products({ onInvest }) {
   const plans = [
     {
-      id: 'flash',
-      name: 'Flash Plan',
-      min: 'GH₵ 50',
-      returns: '30%',
-      duration: 'Every 5 Mins',
-      popular: true,
-      color: 'from-amber-500 to-orange-600',
-      icon: Zap,
-      isFlash: true
-    },
-    {
       id: 'starter',
       name: 'Starter Plan',
       min: 'GH₵ 100',
@@ -22,15 +11,6 @@ export default function Products({ onInvest }) {
       popular: true,
       color: 'from-blue-600 to-blue-700',
       icon: Zap
-    },
-    {
-      id: 'basic',
-      name: 'Basic Plan',
-      min: 'GH₵ 200',
-      returns: 'GH₵ 50',
-      popular: false,
-      color: 'from-slate-700 to-slate-800',
-      icon: TrendingUp
     },
     {
       id: 'silver',
@@ -197,7 +177,7 @@ export default function Products({ onInvest }) {
                   </div>
                   <div className="flex items-center gap-4 text-gray-400 font-bold text-xs uppercase tracking-widest">
                     <Check className="w-5 h-5 text-blue-500 stroke-[3px]" />
-                    <span>0.05% Referral Reward</span>
+                    <span>5% Referral Reward</span>
                   </div>
                 </div>
 
