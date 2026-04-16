@@ -127,6 +127,22 @@ export default function Dashboard({ user, setActiveTab }) {
           </motion.div>
         )}
 
+        {availableCash === 5 && invested === 0 && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-blue-600/10 border border-blue-600/20 p-4 rounded-2xl flex items-center gap-4 text-blue-500 mb-6"
+          >
+            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest">Welcome Reward</p>
+              <p className="text-sm font-bold">You've received a GH₵ 5 registration bonus! Start your investment journey now.</p>
+            </div>
+          </motion.div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
