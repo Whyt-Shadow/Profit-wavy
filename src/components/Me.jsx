@@ -105,7 +105,7 @@ export default function Me({ user: firebaseUser }) {
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
             <h3 className="text-lg font-black font-display uppercase italic text-blue-500">Profile Information</h3>
             <div className="space-y-4">
-              {userData?.balance === 0 && (
+              {!userData?.hasClaimedBonus && (
                 <button 
                   onClick={async () => {
                     try {

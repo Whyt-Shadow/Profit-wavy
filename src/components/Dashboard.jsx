@@ -11,7 +11,8 @@ import {
   ChevronRight,
   ShieldCheck,
   PieChart as PieChartIcon,
-  Zap
+  Zap,
+  X
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNotification } from './NotificationProvider';
@@ -37,6 +38,14 @@ export default function Dashboard({ user, setActiveTab }) {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [dbError, setDbError] = useState(null);
   const { showNotification } = useNotification();
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    const isDismissed = localStorage.getItem(`welcome_dismissed_${user.uid}`);
+    if (!isDismissed) {
+      setShowWelcome(true);
+    }
+  }, [user.uid]);
 
   const fetchData = async () => {
     if (!user?.uid) return;
@@ -196,19 +205,31 @@ export default function Dashboard({ user, setActiveTab }) {
           </motion.div>
         )}
 
-        {recentReturns.some(tx => tx.name === 'Registration Bonus') && invested === 0 && (
+        {showWelcome && recentReturns.some(tx => tx.name === 'Registration Bonus') && invested === 0 && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-blue-600/10 border border-blue-600/20 p-4 rounded-2xl flex items-center gap-4 text-blue-500 mb-6"
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="bg-blue-600/10 border border-blue-600/20 p-4 rounded-2xl flex items-center justify-between gap-4 text-blue-500 mb-6"
           >
-            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-              <Plus className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+                <Plus className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest">Welcome Reward</p>
+                <p className="text-sm font-bold">You've received a GH₵ 5 registration bonus! Start your investment journey now.</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest">Welcome Reward</p>
-              <p className="text-sm font-bold">You've received a GH₵ 5 registration bonus! Start your investment journey now.</p>
-            </div>
+            <button 
+              onClick={() => {
+                setShowWelcome(false);
+                localStorage.setItem(`welcome_dismissed_${user.uid}`, 'true');
+              }}
+              className="p-2 hover:bg-white/10 rounded-xl transition-colors shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </motion.div>
         )}
 

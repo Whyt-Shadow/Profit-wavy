@@ -258,7 +258,12 @@ async function startServer() {
     try {
       const user = await User.findOne({ uid: req.params.uid });
       if (!user) return res.status(404).json({ error: "User not found" });
-      res.json(user);
+      
+      const bonusTx = await Transaction.findOne({ userId: req.params.uid, type: 'bonus', planName: 'Registration Bonus' });
+      const userObj = user.toObject();
+      userObj.hasClaimedBonus = !!bonusTx;
+      
+      res.json(userObj);
     } catch (error) {
       console.error(`[API] Error in get user ${req.params.uid}:`, error);
       res.status(500).json({ error: "Failed to fetch user" });
