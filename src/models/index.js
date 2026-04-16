@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
   balance: { type: Number, default: 0 },
   totalInvested: { type: Number, default: 0 },
   totalReturns: { type: Number, default: 0 },
+  referralCode: { type: String, unique: true },
+  referredBy: { type: String }, // Stores the referralCode of the referrer
   paymentMethods: [{
     type: { type: String, enum: ['momo', 'card'] },
     details: { type: String },
@@ -21,7 +23,7 @@ export const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 const transactionSchema = new mongoose.Schema({
   userId: { type: String, required: true },
-  type: { type: String, enum: ['investment', 'return', 'deposit', 'withdrawal'], required: true },
+  type: { type: String, enum: ['investment', 'return', 'deposit', 'withdrawal', 'bonus', 'referral'], required: true },
   amount: { type: Number, required: true },
   planName: { type: String },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },

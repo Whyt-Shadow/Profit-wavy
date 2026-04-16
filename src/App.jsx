@@ -20,10 +20,18 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
+    // Capture referral code from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      localStorage.setItem('referralCode', ref);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Sync with MongoDB
         try {
+          const referralCode = localStorage.getItem('referralCode');
           const syncRes = await fetch('/api/users/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -32,9 +40,13 @@ export default function App() {
               email: firebaseUser.email,
               displayName: firebaseUser.displayName,
               photoURL: firebaseUser.photoURL,
+              referralCode: referralCode || undefined
             }),
           });
-          if (!syncRes.ok) {
+          if (syncRes.ok) {
+            // Clear referral code after successful sync
+            localStorage.removeItem('referralCode');
+          } else {
             const errorData = await syncRes.json().catch(() => ({ error: 'Unknown server error' }));
             console.error("Server error syncing user:", errorData.error);
           }

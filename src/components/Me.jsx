@@ -98,6 +98,25 @@ export default function Me({ user: firebaseUser }) {
                 </div>
                 <span className="text-xs font-black text-white">{firebaseUser.email}</span>
               </div>
+              <div className="flex flex-col gap-3 p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Zap className="w-5 h-5 text-blue-500" />
+                    <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Referral Code</span>
+                  </div>
+                  <span className="text-xs font-black text-blue-500">{userData?.referralCode || '...'}</span>
+                </div>
+                <button 
+                  onClick={() => {
+                    const link = `${window.location.origin}?ref=${userData?.referralCode}`;
+                    navigator.clipboard.writeText(link);
+                    alert("Referral link copied to clipboard!");
+                  }}
+                  className="w-full py-2 bg-blue-600/10 text-blue-500 text-[8px] font-black uppercase tracking-widest rounded-xl border border-blue-500/20 hover:bg-blue-600 hover:text-white transition-all"
+                >
+                  Copy Referral Link
+                </button>
+              </div>
             </div>
             <button className="w-full py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-700 transition-all">
               Update Profile

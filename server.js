@@ -57,14 +57,24 @@ async function startServer() {
 
   // Get or Create User
   app.post("/api/users/sync", async (req, res) => {
-    const { uid, email, displayName, photoURL } = req.body;
+    const { uid, email, displayName, photoURL, referralCode: referredBy } = req.body;
     try {
       let user = await User.findOne({ uid });
       if (!user) {
-        user = await User.create({ uid, email, displayName, photoURL });
+        // Generate a unique referral code for the new user
+        const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        user = await User.create({ 
+          uid, 
+          email, 
+          displayName, 
+          photoURL, 
+          referralCode: newReferralCode,
+          referredBy: referredBy || null
+        });
       }
       res.json(user);
     } catch (error) {
+      console.error("Sync error:", error);
       res.status(500).json({ error: "Failed to sync user" });
     }
   });
@@ -135,11 +145,43 @@ async function startServer() {
       if (user) {
         if (type === 'investment') {
           user.totalInvested += amount;
-          user.balance -= amount; // Deduct from balance when investing
+          user.balance -= amount;
         } else if (type === 'return') {
           user.totalReturns += amount;
+          user.balance += amount; // Assuming returns go to balance
         } else if (type === 'deposit') {
+          // Check if this is the first deposit for registration bonus
+          const previousDeposits = await Transaction.countDocuments({ userId, type: 'deposit' });
+          
+          let finalAmount = amount;
+          if (previousDeposits === 1) { // This is the first deposit (count is 1 because we just created it)
+            const regBonus = amount * 0.05;
+            user.balance += regBonus;
+            await Transaction.create({
+              userId,
+              type: 'bonus',
+              amount: regBonus,
+              planName: 'Registration Bonus (5%)'
+            });
+          }
+          
           user.balance += amount;
+
+          // Handle Referral Bonus (0.05% of deposit to the referrer)
+          if (user.referredBy) {
+            const referrer = await User.findOne({ referralCode: user.referredBy });
+            if (referrer) {
+              const refBonus = amount * 0.0005; // 0.05%
+              referrer.balance += refBonus;
+              await referrer.save();
+              await Transaction.create({
+                userId: referrer.uid,
+                type: 'referral',
+                amount: refBonus,
+                planName: `Referral Bonus from ${user.displayName || user.email}`
+              });
+            }
+          }
         } else if (type === 'withdrawal') {
           user.balance -= amount;
         }
@@ -148,6 +190,7 @@ async function startServer() {
       
       res.json(transaction);
     } catch (error) {
+      console.error("Transaction error:", error);
       res.status(500).json({ error: "Failed to create transaction" });
     }
   });
