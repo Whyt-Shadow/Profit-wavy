@@ -106,6 +106,7 @@ export default function Auth() {
       let msg = err.message;
       if (msg.includes('auth/user-not-found')) msg = 'User not found.';
       if (msg.includes('auth/wrong-password')) msg = 'Incorrect password.';
+      if (msg.includes('auth/invalid-credential')) msg = 'Invalid phone/email or password.';
       setError(msg || 'An error occurred.');
     } finally {
       setLoading(false);
@@ -334,6 +335,11 @@ export default function Auth() {
           onClick={() => {
             setIsLogin(!isLogin);
             setError(null);
+            setEmail('');
+            setPassword('');
+            setConfirmPassword('');
+            setPhone('');
+            setDisplayName('');
           }}
           className="text-[#1e293b] hover:underline"
         >

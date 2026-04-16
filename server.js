@@ -228,12 +228,18 @@ async function startServer() {
 
   // Get User Data
   app.get("/api/users/lookup", async (req, res) => {
-    const { identity } = req.query;
+    let { identity } = req.query;
     if (!identity) return res.status(400).json({ error: "Identity (phone, name, or email) is required" });
+    
+    // Normalize identity: trim and if it's a phone-like string, we could potentially strip non-digits
+    // but for now let's just trim and handle it as-is.
+    identity = identity.trim();
+
     try {
       const user = await User.findOne({ 
         $or: [
           { phone: identity },
+          { phone: identity.replace(/\s+/g, '') }, // Match without spaces
           { displayName: new RegExp(`^${identity}$`, 'i') },
           { email: new RegExp(`^${identity}$`, 'i') }
         ]
