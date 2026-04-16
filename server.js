@@ -60,8 +60,22 @@ async function startServer() {
     const { uid, email, displayName, photoURL, referralCode: referredBy } = req.body;
     console.log(`SYNC: Request for UID ${uid}, Email ${email}`);
     try {
+      // 1. Try finding by UID
       let user = await User.findOne({ uid });
+      
+      // 2. If not found by UID, try finding by email to link accounts
+      if (!user && email) {
+        user = await User.findOne({ email });
+        if (user) {
+          console.log(`SYNC: Linking UID ${uid} to existing user record for email ${email}`);
+          user.uid = uid;
+          await user.save();
+        }
+      }
+
+      // 3. If still no user, create a new record
       if (!user) {
+        console.log(`SYNC: Creating new user for UID ${uid}`);
         // Generate a unique referral code for the new user
         const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         user = await User.create({ 
@@ -81,21 +95,36 @@ async function startServer() {
           amount: 5,
           planName: 'Registration Bonus'
         });
-      } else {
-        // Retroactive bonus check: If user exists but hasn't received the registration bonus
-        const bonusExists = await Transaction.findOne({ userId: uid, type: 'bonus', planName: 'Registration Bonus' });
-        if (!bonusExists) {
-          user.balance += 5;
-          await user.save();
-          await Transaction.create({
-            userId: uid,
-            type: 'bonus',
-            amount: 5,
-            planName: 'Registration Bonus'
-          });
-          console.log(`Applied missing registration bonus to user ${uid}`);
-        }
+        return res.status(201).json(user);
+      } 
+      
+      // 4. For existing users, check for metadata updates
+      let needsSave = false;
+      if (displayName && user.displayName !== displayName) {
+        user.displayName = displayName;
+        needsSave = true;
       }
+      if (photoURL && user.photoURL !== photoURL) {
+        user.photoURL = photoURL;
+        needsSave = true;
+      }
+      if (needsSave) await user.save();
+
+      // 5. Retroactive bonus check: If user exists but hasn't received the registration bonus
+      const bonusExists = await Transaction.findOne({ userId: user.uid, type: 'bonus', planName: 'Registration Bonus' });
+      if (!bonusExists) {
+        console.log(`SYNC: Applying missing bonus for user ${user.uid}`);
+        await User.updateOne({ uid: user.uid }, { $inc: { balance: 5 } });
+        await Transaction.create({
+          userId: user.uid,
+          type: 'bonus',
+          amount: 5,
+          planName: 'Registration Bonus'
+        });
+        // Re-fetch user to return updated data
+        user = await User.findOne({ uid: user.uid });
+      }
+
       res.json(user);
     } catch (error) {
       console.error("Sync error:", error);
@@ -113,6 +142,33 @@ async function startServer() {
       });
     } catch (error) {
       res.status(500).json({ status: "error" });
+    }
+  });
+
+  // Manual Bonus Claim
+  app.post("/api/users/:uid/claim-bonus", async (req, res) => {
+    try {
+      const { uid } = req.params;
+      const user = await User.findOne({ uid });
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      const bonusExists = await Transaction.findOne({ userId: uid, type: 'bonus', planName: 'Registration Bonus' });
+      if (bonusExists) {
+        return res.status(400).json({ error: "Registration bonus already claimed" });
+      }
+
+      await User.updateOne({ uid }, { $inc: { balance: 5 } });
+      await Transaction.create({
+        userId: uid,
+        type: 'bonus',
+        amount: 5,
+        planName: 'Registration Bonus'
+      });
+      
+      const updatedUser = await User.findOne({ uid });
+      res.json({ message: "Bonus claimed successfully", balance: updatedUser.balance });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to claim bonus" });
     }
   });
 

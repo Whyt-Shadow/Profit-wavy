@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
+import { useNotification } from './NotificationProvider';
 import { 
   TrendingUp, 
   ShieldCheck, 
@@ -25,6 +26,7 @@ export default function LandingPage({ onGetStarted }) {
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
   const rotate = useTransform(scrollY, [0, 1000], [0, 45]);
+  const { showNotification } = useNotification();
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30 overflow-x-hidden">
@@ -234,7 +236,7 @@ export default function LandingPage({ onGetStarted }) {
                     Our proprietary algorithm dynamically shifts your capital into the highest performing waves, ensuring maximum ROI while maintaining strict risk parameters.
                   </p>
                   <button 
-                    onClick={() => alert("Institutional strategy analysis is currently being updated for the next market wave.")}
+                    onClick={() => showNotification("Institutional strategy analysis is currently being updated for the next market wave.", "success")}
                     className="flex items-center gap-3 text-blue-500 font-black text-[10px] md:text-xs uppercase tracking-widest group/btn"
                   >
                     Explore Strategy

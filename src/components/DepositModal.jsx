@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Smartphone, CreditCard, ShieldCheck, ArrowRight } from 'lucide-react';
 import { usePaystackPayment } from 'react-paystack';
 import { auth } from '../lib/firebase';
+import { useNotification } from './NotificationProvider';
 
 export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showNotification } = useNotification();
 
   const config = {
     reference: (new Date()).getTime().toString(),
@@ -21,7 +23,7 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
 
   const handleDeposit = () => {
     if (!amount || parseInt(amount) < 50) {
-      alert("Minimum deposit is GH₵ 50");
+      showNotification("Minimum deposit is GH₵ 50", "error");
       return;
     }
     

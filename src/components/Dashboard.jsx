@@ -14,6 +14,7 @@ import {
   Zap
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useNotification } from './NotificationProvider';
 import { 
   AreaChart, 
   Area, 
@@ -35,9 +36,25 @@ export default function Dashboard({ user, setActiveTab }) {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [dbError, setDbError] = useState(null);
+  const { showNotification } = useNotification();
 
   const fetchData = async () => {
     if (!user?.uid) return;
+    
+    // Check system status first to see if DB is actually connected
+    try {
+      const statusRes = await fetch('/api/system/status');
+      if (statusRes.ok) {
+        const status = await statusRes.json();
+        if (status.db === 'disconnected') {
+          setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("System status check failed", e);
+    }
+
     setDbError(null);
     try {
       // Fetch User Data from MongoDB
@@ -287,7 +304,7 @@ export default function Dashboard({ user, setActiveTab }) {
             </div>
             <button 
               onClick={() => {
-                alert("Generating institutional statement... Your report will be available for download in the Me section shortly.");
+                showNotification("Generating institutional statement... Check your 'Me' section shortly.", "success");
               }}
               className="text-[8px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] hover:text-white transition-colors border border-blue-500/30 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl hover:bg-blue-600 hover:border-blue-600 self-start md:self-auto"
             >

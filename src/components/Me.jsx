@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, Shield, Bell, CreditCard, HelpCircle, ChevronRight, LogOut, ArrowLeft, User as UserIcon, Lock, Globe, Smartphone, Mail, CheckCircle2, Trash2, Plus, FileText } from 'lucide-react';
+import { Settings, Shield, Bell, CreditCard, HelpCircle, ChevronRight, LogOut, ArrowLeft, User as UserIcon, Lock, Globe, Smartphone, Mail, CheckCircle2, Trash2, Plus, FileText, Zap } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 import AddPaymentModal from './AddPaymentModal';
 import TermsModal from './TermsModal';
+import { useNotification } from './NotificationProvider';
 
 export default function Me({ user: firebaseUser }) {
   const [subView, setSubView] = useState(null);
@@ -13,6 +14,7 @@ export default function Me({ user: firebaseUser }) {
   const [loading, setLoading] = useState(true);
   const [showTerms, setShowTerms] = useState(false);
   const [termsTitle, setTermsTitle] = useState('Terms and Conditions');
+  const { showNotification } = useNotification();
 
   const openTerms = (title) => {
     setTermsTitle(title);
@@ -56,16 +58,17 @@ export default function Me({ user: firebaseUser }) {
   };
 
   const handleRemovePayment = async (id) => {
-    if (!confirm("Are you sure you want to remove this payment method?")) return;
     try {
       const res = await fetch(`/api/users/${firebaseUser.uid}/payment-methods/${id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
+        showNotification("Payment method removed successfully", "success");
         await fetchUserData();
       }
     } catch (error) {
       console.error("Failed to remove payment method:", error);
+      showNotification("Failed to remove payment method", "error");
     }
   };
 
@@ -84,6 +87,27 @@ export default function Me({ user: firebaseUser }) {
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
             <h3 className="text-lg font-black font-display uppercase italic text-blue-500">Profile Information</h3>
             <div className="space-y-4">
+              {userData?.balance === 0 && (
+                <button 
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/users/${firebaseUser.uid}/claim-bonus`, { method: 'POST' });
+                      const data = await res.json();
+                      if (res.ok) {
+                        showNotification(`Bonus claimed! Balance: GH₵ ${data.balance}`, "success");
+                        fetchUserData();
+                      } else {
+                        showNotification(data.error || 'Bonus already recorded', "error");
+                      }
+                    } catch (e) {
+                      showNotification("Network error claiming bonus", "error");
+                    }
+                  }}
+                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all mb-4"
+                >
+                  🎁 Claim GH₵ 5 Welcome Bonus
+                </button>
+              )}
               <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                 <div className="flex items-center gap-3">
                   <UserIcon className="w-5 h-5 text-gray-500" />
@@ -110,7 +134,7 @@ export default function Me({ user: firebaseUser }) {
                   onClick={() => {
                     const link = `${window.location.origin}?ref=${userData?.referralCode}`;
                     navigator.clipboard.writeText(link);
-                    alert("Referral link copied to clipboard!");
+                    showNotification("Referral link copied!", "success");
                   }}
                   className="w-full py-2 bg-blue-600/10 text-blue-500 text-[8px] font-black uppercase tracking-widest rounded-xl border border-blue-500/20 hover:bg-blue-600 hover:text-white transition-all"
                 >
