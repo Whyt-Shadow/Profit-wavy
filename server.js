@@ -58,6 +58,7 @@ async function startServer() {
   // Get or Create User
   app.post("/api/users/sync", async (req, res) => {
     const { uid, email, displayName, photoURL, referralCode: referredBy } = req.body;
+    console.log(`SYNC: Request for UID ${uid}, Email ${email}`);
     try {
       let user = await User.findOne({ uid });
       if (!user) {
@@ -83,7 +84,7 @@ async function startServer() {
       } else {
         // Retroactive bonus check: If user exists but hasn't received the registration bonus
         const bonusExists = await Transaction.findOne({ userId: uid, type: 'bonus', planName: 'Registration Bonus' });
-        if (!bonusExists && user.balance === 0 && user.totalInvested === 0) {
+        if (!bonusExists) {
           user.balance += 5;
           await user.save();
           await Transaction.create({
@@ -92,13 +93,26 @@ async function startServer() {
             amount: 5,
             planName: 'Registration Bonus'
           });
-          console.log(`Retroactively applied registration bonus to user ${uid}`);
+          console.log(`Applied missing registration bonus to user ${uid}`);
         }
       }
       res.json(user);
     } catch (error) {
       console.error("Sync error:", error);
       res.status(500).json({ error: "Failed to sync user" });
+    }
+  });
+
+  // Health check with DB status
+  app.get("/api/system/status", async (req, res) => {
+    try {
+      res.json({ 
+        status: "ok", 
+        db: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ status: "error" });
     }
   });
 

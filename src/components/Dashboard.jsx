@@ -44,7 +44,11 @@ export default function Dashboard({ user, setActiveTab }) {
       const userRes = await fetch(`/api/users/${user.uid}`);
       if (userRes.ok) {
         const userData = await userRes.json();
-        console.log("Dashboard fetched user data:", userData);
+        console.log("DASHBOARD: User data loaded:", {
+          balance: userData.balance,
+          totalReturns: userData.totalReturns,
+          totalInvested: userData.totalInvested
+        });
         setTotalBalance(userData.balance + userData.totalReturns);
         setInvested(userData.totalInvested);
         setAvailableCash(userData.balance);
@@ -81,9 +85,18 @@ export default function Dashboard({ user, setActiveTab }) {
     // Small delay for the first fetch to ensure backend sync is complete
     const initialTimeout = setTimeout(fetchData, 1000);
     const interval = setInterval(fetchData, 5000); // Real-time refresh every 5s
+    
+    // Listen for sync completion event from App.jsx
+    const handleSync = () => {
+      console.log("DASHBOARD: Sync event received, refreshing data...");
+      fetchData();
+    };
+    window.addEventListener('user-synced', handleSync);
+
     return () => {
       clearTimeout(initialTimeout);
       clearInterval(interval);
+      window.removeEventListener('user-synced', handleSync);
     };
   }, [user.uid]);
 

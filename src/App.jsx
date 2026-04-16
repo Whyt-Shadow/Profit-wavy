@@ -46,6 +46,8 @@ export default function App() {
           if (syncRes.ok) {
             const syncedUser = await syncRes.json();
             console.log("User synced successfully with MongoDB:", syncedUser);
+            // Dispatch event to notify dashboard
+            window.dispatchEvent(new CustomEvent('user-synced'));
             // Clear referral code after successful sync
             localStorage.removeItem('referralCode');
           } else {
