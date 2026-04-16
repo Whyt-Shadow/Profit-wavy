@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'motion/react';
 export default function App() {
   const [user, setUser] = useState(null);
   const [isSynced, setIsSynced] = useState(false);
+  const [syncError, setSyncError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -54,16 +55,20 @@ export default function App() {
             // Clear referral code after successful sync
             localStorage.removeItem('referralCode');
             setIsSynced(true);
+            setSyncError(null);
           } else {
             const errorData = await syncRes.json().catch(() => ({ error: 'Unknown server error' }));
             console.error("Server error syncing user:", errorData.error);
-            // Even if sync fails, let them in but with a warning? 
-            // Better to let them in and Dashboard will show DB error.
-            setIsSynced(true); 
+            setSyncError(errorData.error);
+            // If it's a 503, definitely don't mark as synced yet
+            if (syncRes.status !== 503) {
+              setIsSynced(true); // Allow proceeding for other errors to avoid infinite loading
+            }
           }
         } catch (error) {
           console.error("Network error syncing user with MongoDB:", error);
-          setIsSynced(true);
+          setSyncError("Network error synchronizing account.");
+          // Don't set isSynced to true if it's a network error
         }
         setUser(firebaseUser);
       } else {
@@ -94,13 +99,23 @@ export default function App() {
           </motion.div>
         </div>
         {user && !isSynced && (
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] animate-pulse"
-          >
-            Synchronizing Secure Account...
-          </motion.p>
+          <>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] animate-pulse text-center px-4"
+            >
+              {syncError || "Synchronizing Secure Account..."}
+            </motion.p>
+            {syncError && (
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl"
+              >
+                Retry Connection
+              </button>
+            )}
+          </>
         )}
       </div>
     );

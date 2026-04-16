@@ -43,7 +43,26 @@ async function startServer() {
   // MongoDB Connection (non-blocking)
   if (MONGODB_URI) {
     mongoose.connect(MONGODB_URI)
-      .then(() => console.log("Connected to MongoDB"))
+      .then(async () => {
+        console.log("Connected to MongoDB");
+        // Clean up legacy indexes
+        try {
+          const collections = await mongoose.connection.db.listCollections({ name: 'users' }).toArray();
+          if (collections.length > 0) {
+            const indexes = await mongoose.connection.db.collection('users').indexes();
+            if (indexes.some(idx => idx.name === 'phone_1')) {
+              console.log("Dropping legacy 'phone_1' unique index...");
+              await mongoose.connection.db.collection('users').dropIndex('phone_1');
+            }
+            if (indexes.some(idx => idx.name === 'accountId_1')) {
+              console.log("Dropping legacy 'accountId_1' unique index...");
+              await mongoose.connection.db.collection('users').dropIndex('accountId_1');
+            }
+          }
+        } catch (err) {
+          console.warn("Could not check/drop legacy indexes:", err.message);
+        }
+      })
       .catch(error => console.error("MongoDB connection error:", error));
   } else {
     console.warn("Skipping MongoDB connection: MONGODB_URI is missing.");
@@ -60,8 +79,8 @@ async function startServer() {
 
   // Get or Create User
   app.post("/api/users/sync", async (req, res) => {
-    const { uid, email, displayName, photoURL, referralCode: referredBy } = req.body;
-    console.log(`[SYNC] Request for UID ${uid}, Email ${email}`);
+    const { uid, email, phone, displayName, photoURL, referralCode: referredBy } = req.body;
+    console.log(`[SYNC] Request for UID ${uid}, Email ${email}, Phone ${phone}`);
     
     // Use a session if possible for atomicity
     const session = await mongoose.startSession();
@@ -71,11 +90,13 @@ async function startServer() {
       // 1. Try finding by UID
       let user = await User.findOne({ uid }).session(session);
       
-      // 2. If not found by UID, try finding by email to link accounts
-      if (!user && email) {
-        user = await User.findOne({ email }).session(session);
+      // 2. If not found by UID, try finding by email or phone to link accounts
+      if (!user) {
+        if (email) user = await User.findOne({ email }).session(session);
+        if (!user && phone) user = await User.findOne({ phone }).session(session);
+        
         if (user) {
-          console.log(`[SYNC] Linking UID ${uid} to existing user record for email ${email}`);
+          console.log(`[SYNC] Linking UID ${uid} to existing user record`);
           user.uid = uid;
           await user.save({ session });
         }
@@ -87,7 +108,8 @@ async function startServer() {
         const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         user = (await User.create([{ 
           uid, 
-          email, 
+          email,
+          phone,
           displayName, 
           photoURL, 
           referralCode: newReferralCode,
@@ -111,6 +133,10 @@ async function startServer() {
       let needsSave = false;
       if (displayName && user.displayName !== displayName) {
         user.displayName = displayName;
+        needsSave = true;
+      }
+      if (phone && user.phone !== phone) {
+        user.phone = phone;
         needsSave = true;
       }
       if (photoURL && user.photoURL !== photoURL) {
@@ -197,6 +223,26 @@ async function startServer() {
     } catch (error) {
       console.error("[API] Error in claim-bonus:", error);
       res.status(500).json({ error: "Failed to claim bonus" });
+    }
+  });
+
+  // Get User Data
+  app.get("/api/users/lookup", async (req, res) => {
+    const { identity } = req.query;
+    if (!identity) return res.status(400).json({ error: "Identity (phone, name, or email) is required" });
+    try {
+      const user = await User.findOne({ 
+        $or: [
+          { phone: identity },
+          { displayName: new RegExp(`^${identity}$`, 'i') },
+          { email: new RegExp(`^${identity}$`, 'i') }
+        ]
+      });
+      if (!user) return res.status(404).json({ error: "User not found" });
+      res.json({ email: user.email });
+    } catch (error) {
+      console.error(`[API] Error in lookup ${identity}:`, error);
+      res.status(500).json({ error: "Lookup failed" });
     }
   });
 
