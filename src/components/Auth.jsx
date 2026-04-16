@@ -28,8 +28,13 @@ export default function Auth() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!agreedToTerms) {
-      setError('You must agree to the Terms and Conditions to continue.');
+    if (!isLogin && !agreedToTerms) {
+      setError('You must agree to the Terms and Conditions to create an account.');
+      const termsLabel = document.getElementById('terms-label');
+      if (termsLabel) {
+        termsLabel.classList.add('text-red-500', 'animate-pulse');
+        setTimeout(() => termsLabel.classList.remove('text-red-500', 'animate-pulse'), 2000);
+      }
       return;
     }
     const provider = new GoogleAuthProvider();
@@ -45,8 +50,13 @@ export default function Auth() {
     e.preventDefault();
     setError(null);
 
-    if (!agreedToTerms) {
-      setError('You must agree to the Terms and Conditions to continue.');
+    if (!isLogin && !agreedToTerms) {
+      setError('You must agree to the Terms and Conditions to create an account.');
+      const termsLabel = document.getElementById('terms-label');
+      if (termsLabel) {
+        termsLabel.classList.add('text-red-500', 'animate-pulse');
+        setTimeout(() => termsLabel.classList.remove('text-red-500', 'animate-pulse'), 2000);
+      }
       return;
     }
 
@@ -147,18 +157,24 @@ export default function Auth() {
           </div>
         </div>
 
-        <div className="flex items-start gap-3 py-2">
-          <input
-            type="checkbox"
-            id="terms"
-            checked={agreedToTerms}
-            onChange={(e) => setAgreedToTerms(e.target.checked)}
-            className="mt-1 w-4 h-4 rounded border-gray-300 text-[#1e293b] focus:ring-[#1e293b] cursor-pointer"
-          />
-          <label htmlFor="terms" className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed cursor-pointer select-none">
-            I agree to the <button type="button" onClick={() => openTerms("Terms and Conditions")} className="text-blue-500 hover:underline">Terms and Conditions</button> and <button type="button" onClick={() => openTerms("Privacy Policy")} className="text-blue-500 hover:underline">Privacy Policy</button>.
-          </label>
-        </div>
+        {!isLogin && (
+          <div className="flex items-start gap-3 py-2">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-1 w-4 h-4 rounded border-gray-300 text-[#1e293b] focus:ring-[#1e293b] cursor-pointer"
+            />
+            <label 
+              id="terms-label"
+              htmlFor="terms" 
+              className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed cursor-pointer select-none transition-colors duration-300"
+            >
+              I agree to the <button type="button" onClick={() => openTerms("Terms and Conditions")} className="text-blue-500 hover:underline">Terms and Conditions</button> and <button type="button" onClick={() => openTerms("Privacy Policy")} className="text-blue-500 hover:underline">Privacy Policy</button>.
+            </label>
+          </div>
+        )}
 
         {error && (
           <motion.p 
