@@ -23,6 +23,38 @@ export default function App() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
 
+  // Sync state with browser history for back button support
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state) {
+        setActiveTab(event.state.activeTab || 'dashboard');
+        setSelectedPlan(event.state.selectedPlan || null);
+        setShowAuth(event.state.showAuth || false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    // Initial state setup if missing
+    if (!window.history.state) {
+      window.history.replaceState({ activeTab, selectedPlan, showAuth }, '');
+    }
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Push to history when major navigation state changes
+  useEffect(() => {
+    const savedState = window.history.state;
+    if (savedState && (
+      savedState.activeTab !== activeTab || 
+      savedState.selectedPlan?.id !== selectedPlan?.id || 
+      savedState.showAuth !== showAuth
+    )) {
+      window.history.pushState({ activeTab, selectedPlan, showAuth }, '');
+    }
+  }, [activeTab, selectedPlan, showAuth]);
+
   useEffect(() => {
     // Capture referral code from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -144,7 +176,7 @@ export default function App() {
       return (
         <Payment 
           plan={selectedPlan} 
-          onBack={() => setSelectedPlan(null)} 
+          onBack={() => window.history.back()} 
           onSuccess={() => {
             setSelectedPlan(null);
             setActiveTab('dashboard');
@@ -194,13 +226,13 @@ export default function App() {
                 </div>
 
                 <button 
-                  onClick={() => setShowAuth(false)}
+                  onClick={() => window.history.back()}
                   className="absolute top-8 left-8 text-[10px] font-black text-gray-500 hover:text-white transition-all flex items-center gap-3 uppercase tracking-[0.3em] group z-50"
                 >
                   <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all">
                     <motion.span animate={{ x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>←</motion.span>
                   </div>
-                  Exit to Terminal
+                  Back to Terminal
                 </button>
                 <div className="w-full max-w-md relative z-10">
                   <Auth />

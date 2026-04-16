@@ -16,6 +16,24 @@ export default function Me({ user: firebaseUser }) {
   const [termsTitle, setTermsTitle] = useState('Terms and Conditions');
   const { showNotification } = useNotification();
 
+  // Sync sub-view with browser history
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state?.profileSubView !== undefined) {
+        setSubView(event.state.profileSubView);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const savedState = window.history.state;
+    if (savedState && savedState.profileSubView !== subView) {
+      window.history.pushState({ ...savedState, profileSubView: subView }, '');
+    }
+  }, [subView]);
+
   const openTerms = (title) => {
     setTermsTitle(title);
     setShowTerms(true);
@@ -421,7 +439,7 @@ export default function Me({ user: firebaseUser }) {
             >
               <div className="flex items-center justify-between">
                 <button 
-                  onClick={() => setSubView(null)}
+                  onClick={() => window.history.back()}
                   className="flex items-center gap-3 text-[10px] font-black text-gray-500 hover:text-white transition-all uppercase tracking-[0.3em] group"
                 >
                   <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all">
