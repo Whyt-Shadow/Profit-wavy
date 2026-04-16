@@ -286,16 +286,99 @@ async function startServer() {
     }
   });
 
+  // Paystack Transfer Helper
+  const initiatePaystackPayout = async (withdrawalData) => {
+    const { amount, metadata, userId } = withdrawalData;
+    const SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+
+    if (!SECRET_KEY || SECRET_KEY.includes('YOUR_PAYSTACK_SECRET_KEY')) {
+      console.log(`[PAYOUT-DEMO] Paystack Secret Key not configured for user ${userId}. Payout GH₵ ${amount} simulated.`);
+      return { status: 'simulated', message: 'Demo mode: real payout skipped' };
+    }
+
+    try {
+      // 1. Create Transfer Recipient
+      const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SECRET_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: metadata.method === 'momo' ? 'mobile_money' : 'nuban',
+          name: metadata.accountName || `ProfitWavy User ${userId}`,
+          account_number: metadata.details,
+          bank_code: metadata.network || 'MTN', // Paystack uses MTN, VOD, ATL for GH MOMO
+          currency: 'GHS'
+        })
+      });
+
+      const recipientData = await recipientRes.json();
+      if (!recipientRes.ok || !recipientData.status) {
+        throw new Error(`Paystack Recipient Error: ${recipientData.message}`);
+      }
+
+      // 2. Initiate Transfer
+      const transferRes = await fetch('https://api.paystack.co/transfer', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SECRET_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          source: 'balance',
+          amount: Math.round(amount * 100), // convert to pesewas
+          recipient: recipientData.data.recipient_code,
+          reason: `ProfitWavy Withdrawal - User ${userId}`,
+          currency: 'GHS'
+        })
+      });
+
+      const transferData = await transferRes.json();
+      if (!transferRes.ok || !transferData.status) {
+        throw new Error(`Paystack Payout Error: ${transferData.message}`);
+      }
+
+      console.log(`[PAYOUT-SUCCESS] Paystack Transfer initiated for user ${userId}: ${transferData.data.transfer_code}`);
+      return { status: 'success', reference: transferData.data.reference };
+    } catch (err) {
+      console.error('[PAYOUT-FATAL]', err.message);
+      throw err;
+    }
+  };
+
   // Create Transaction
   app.post("/api/transactions", async (req, res) => {
-    const { userId, type, amount, planName } = req.body;
+    const { userId, type, amount, planName, metadata } = req.body;
     try {
-      const transaction = await Transaction.create({ userId, type, amount, planName });
+      // For withdrawals, check balance FIRST
+      let user = await User.findOne({ uid: userId });
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      if (type === 'withdrawal' && user.balance < amount) {
+        return res.status(400).json({ error: "Insufficient balance for withdrawal" });
+      }
+
+      // If it's a real withdrawal, try Paystack first
+      let payoutStatus = null;
+      if (type === 'withdrawal') {
+        try {
+          payoutStatus = await initiatePaystackPayout({ amount, metadata, userId });
+        } catch (err) {
+          return res.status(500).json({ error: `Payout failed: ${err.message}` });
+        }
+      }
+
+      const transaction = await Transaction.create({ 
+        userId, 
+        type, 
+        amount, 
+        planName,
+        status: payoutStatus?.status === 'success' ? 'completed' : (type === 'withdrawal' ? 'pending' : 'completed')
+      });
       
       // Update user stats
-      const user = await User.findOne({ uid: userId });
-      if (user) {
-        if (type === 'investment') {
+      if (type === 'investment') {
           user.totalInvested += amount;
           user.balance -= amount;
 
@@ -364,10 +447,9 @@ async function startServer() {
           user.balance -= amount;
         }
         await user.save();
-      }
-      
-      res.json(transaction);
-    } catch (error) {
+
+        res.json(transaction);
+      } catch (error) {
       console.error("Transaction error:", error);
       res.status(500).json({ error: "Failed to create transaction" });
     }

@@ -7,6 +7,8 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('momo');
   const [details, setDetails] = useState('');
+  const [accountName, setAccountName] = useState('');
+  const [network, setNetwork] = useState('MTN');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,23 +26,27 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
       return;
     }
 
-    if (!details) {
-      setError(`Please enter your ${method === 'momo' ? 'MoMo number' : 'Card details'}`);
+    if (!details || (method === 'momo' && !accountName)) {
+      setError(`Please enter your ${method === 'momo' ? 'MoMo number and Account Name' : 'Card details'}`);
       return;
     }
     
     setLoading(true);
     try {
-      // In a real app, this would trigger a payout API
-      // For this demo, we'll just record a transaction and update balance
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: auth.currentUser.uid,
-          type: 'withdrawal', // We'll need to update the enum in the model if it doesn't exist
+          type: 'withdrawal',
           amount: withdrawAmount,
-          planName: `Withdrawal to ${method.toUpperCase()}`,
+          planName: `Withdrawal to ${method.toUpperCase()} (${network})`,
+          metadata: {
+            method,
+            details,
+            accountName,
+            network: method === 'momo' ? network : null
+          }
         }),
       });
 
@@ -121,6 +127,37 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
                   <span className={`text-[10px] font-black uppercase tracking-widest ${method === 'card' ? 'text-blue-400' : 'text-gray-500'}`}>Card</span>
                 </button>
               </div>
+
+              {method === 'momo' && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 ml-1 uppercase tracking-widest">Network</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['MTN', 'VOD', 'ATL'].map((net) => (
+                        <button
+                          key={net}
+                          onClick={() => setNetwork(net)}
+                          className={`py-2 px-1 rounded-xl border text-[10px] font-black transition-all ${
+                            network === net ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white/5 border-white/10 text-gray-500'
+                          }`}
+                        >
+                          {net === 'VOD' ? 'Telecel/Vod' : net}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-1">Account Holder Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter exactly as shown on MOMO"
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-1">
