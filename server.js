@@ -87,11 +87,11 @@ async function startServer() {
           displayName, 
           photoURL, 
           referralCode: newReferralCode,
-          referredBy: referredBy || null,
-          balance: 5 // Initial registration bonus
+          referredBy: referredBy || null
+          // balance: 5 is now default in schema
         });
 
-        // Create bonus transaction
+        // Create bonus transaction record
         await Transaction.create({
           userId: uid,
           type: 'bonus',
@@ -113,24 +113,39 @@ async function startServer() {
       }
       if (needsSave) await user.save();
 
-      // 5. Retroactive bonus check: If user exists but hasn't received the registration bonus
-      const bonusExists = await Transaction.findOne({ userId: user.uid, type: 'bonus', planName: 'Registration Bonus' });
+      // 5. Registration bonus check (Retroactive & Idempotent)
+      // Check if user has ANY registration bonus transaction
+      const bonusExists = await Transaction.findOne({ 
+        userId: user.uid, 
+        type: 'bonus', 
+        planName: 'Registration Bonus' 
+      });
+
       if (!bonusExists) {
-        console.log(`SYNC: Applying missing bonus for user ${user.uid}`);
-        await User.updateOne({ uid: user.uid }, { $inc: { balance: 5 } });
+        console.log(`SYNC: Ensuring registration bonus for user ${user.uid}`);
+        
+        // If they have less than 5 balance, they haven't received it OR they spent it.
+        // But if bonusExists is false, they definitely haven't received the bonus officially.
+        // If they are new users with the new schema, their balance is already 5.
+        // We only add 5 if their balance is still at the OLD default (0).
+        if (user.balance === 0) {
+          await User.updateOne({ uid: user.uid }, { $inc: { balance: 5 } });
+        }
+        
         await Transaction.create({
           userId: user.uid,
           type: 'bonus',
           amount: 5,
           planName: 'Registration Bonus'
         });
+        
         // Re-fetch user to return updated data
         user = await User.findOne({ uid: user.uid });
       }
 
       res.json(user);
     } catch (error) {
-      console.error("Sync error:", error);
+      console.error("[SYNC-ERROR]", error);
       res.status(500).json({ error: "Failed to sync user" });
     }
   });

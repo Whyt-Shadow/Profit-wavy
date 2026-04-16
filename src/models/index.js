@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true },
   displayName: { type: String },
   photoURL: { type: String },
-  balance: { type: Number, default: 0 },
+  balance: { type: Number, default: 5 },
   totalInvested: { type: Number, default: 0 },
   totalReturns: { type: Number, default: 0 },
   referralCode: { type: String, unique: true },

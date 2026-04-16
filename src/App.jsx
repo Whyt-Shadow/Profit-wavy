@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [isSynced, setIsSynced] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -52,16 +53,22 @@ export default function App() {
             window.dispatchEvent(new CustomEvent('user-synced'));
             // Clear referral code after successful sync
             localStorage.removeItem('referralCode');
+            setIsSynced(true);
           } else {
             const errorData = await syncRes.json().catch(() => ({ error: 'Unknown server error' }));
             console.error("Server error syncing user:", errorData.error);
+            // Even if sync fails, let them in but with a warning? 
+            // Better to let them in and Dashboard will show DB error.
+            setIsSynced(true); 
           }
         } catch (error) {
           console.error("Network error syncing user with MongoDB:", error);
+          setIsSynced(true);
         }
         setUser(firebaseUser);
       } else {
         setUser(null);
+        setIsSynced(false);
       }
       setLoading(false);
     });
@@ -69,9 +76,9 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
+  if (loading || (user && !isSynced)) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center flex-col gap-6">
         <div className="relative">
           <motion.div 
             animate={{ rotate: 360 }}
@@ -86,6 +93,15 @@ export default function App() {
             <div className="w-2 h-2 bg-blue-600 rounded-full" />
           </motion.div>
         </div>
+        {user && !isSynced && (
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-[10px] font-black text-gray-500 uppercase tracking-[0.5em] animate-pulse"
+          >
+            Synchronizing Secure Account...
+          </motion.p>
+        )}
       </div>
     );
   }
