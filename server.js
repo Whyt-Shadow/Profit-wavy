@@ -61,43 +61,49 @@ async function startServer() {
   // Get or Create User
   app.post("/api/users/sync", async (req, res) => {
     const { uid, email, displayName, photoURL, referralCode: referredBy } = req.body;
-    console.log(`SYNC: Request for UID ${uid}, Email ${email}`);
+    console.log(`[SYNC] Request for UID ${uid}, Email ${email}`);
+    
+    // Use a session if possible for atomicity
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
       // 1. Try finding by UID
-      let user = await User.findOne({ uid });
+      let user = await User.findOne({ uid }).session(session);
       
       // 2. If not found by UID, try finding by email to link accounts
       if (!user && email) {
-        user = await User.findOne({ email });
+        user = await User.findOne({ email }).session(session);
         if (user) {
-          console.log(`SYNC: Linking UID ${uid} to existing user record for email ${email}`);
+          console.log(`[SYNC] Linking UID ${uid} to existing user record for email ${email}`);
           user.uid = uid;
-          await user.save();
+          await user.save({ session });
         }
       }
 
       // 3. If still no user, create a new record
       if (!user) {
-        console.log(`SYNC: Creating new user for UID ${uid}`);
-        // Generate a unique referral code for the new user
+        console.log(`[SYNC] Creating new user for UID ${uid}`);
         const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        user = await User.create({ 
+        user = (await User.create([{ 
           uid, 
           email, 
           displayName, 
           photoURL, 
           referralCode: newReferralCode,
-          referredBy: referredBy || null
-          // balance: 5 is now default in schema
-        });
+          referredBy: referredBy || null,
+          balance: 5 // Default now 5 in schema, but explicit here for safety
+        }], { session }))[0];
 
-        // Create bonus transaction record
-        await Transaction.create({
+        await Transaction.create([{
           userId: uid,
           type: 'bonus',
           amount: 5,
           planName: 'Registration Bonus'
-        });
+        }], { session });
+
+        await session.commitTransaction();
+        session.endSession();
         return res.status(201).json(user);
       } 
       
@@ -111,40 +117,40 @@ async function startServer() {
         user.photoURL = photoURL;
         needsSave = true;
       }
-      if (needsSave) await user.save();
+      if (needsSave) await user.save({ session });
 
       // 5. Registration bonus check (Retroactive & Idempotent)
-      // Check if user has ANY registration bonus transaction
       const bonusExists = await Transaction.findOne({ 
         userId: user.uid, 
         type: 'bonus', 
         planName: 'Registration Bonus' 
-      });
+      }).session(session);
 
       if (!bonusExists) {
-        console.log(`SYNC: Ensuring registration bonus for user ${user.uid}`);
+        console.log(`[SYNC] Ensuring registration bonus for user ${user.uid}`);
         
-        // If they have less than 5 balance, they haven't received it OR they spent it.
-        // But if bonusExists is false, they definitely haven't received the bonus officially.
-        // If they are new users with the new schema, their balance is already 5.
-        // We only add 5 if their balance is still at the OLD default (0).
-        if (user.balance === 0) {
-          await User.updateOne({ uid: user.uid }, { $inc: { balance: 5 } });
+        // If they have less than 5 balance and no bonus record, add it
+        if (user.balance < 5) {
+          user.balance += 5;
+          await user.save({ session });
         }
         
-        await Transaction.create({
+        await Transaction.create([{
           userId: user.uid,
           type: 'bonus',
           amount: 5,
           planName: 'Registration Bonus'
-        });
+        }], { session });
         
-        // Re-fetch user to return updated data
-        user = await User.findOne({ uid: user.uid });
+        user = await User.findOne({ uid: user.uid }).session(session);
       }
 
+      await session.commitTransaction();
+      session.endSession();
       res.json(user);
     } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
       console.error("[SYNC-ERROR]", error);
       res.status(500).json({ error: "Failed to sync user" });
     }
