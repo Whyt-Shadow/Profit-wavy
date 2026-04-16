@@ -80,6 +80,20 @@ async function startServer() {
           amount: 5,
           planName: 'Registration Bonus'
         });
+      } else {
+        // Retroactive bonus check: If user exists but hasn't received the registration bonus
+        const bonusExists = await Transaction.findOne({ userId: uid, type: 'bonus', planName: 'Registration Bonus' });
+        if (!bonusExists && user.balance === 0 && user.totalInvested === 0) {
+          user.balance += 5;
+          await user.save();
+          await Transaction.create({
+            userId: uid,
+            type: 'bonus',
+            amount: 5,
+            planName: 'Registration Bonus'
+          });
+          console.log(`Retroactively applied registration bonus to user ${uid}`);
+        }
       }
       res.json(user);
     } catch (error) {

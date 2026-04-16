@@ -44,6 +44,7 @@ export default function Dashboard({ user, setActiveTab }) {
       const userRes = await fetch(`/api/users/${user.uid}`);
       if (userRes.ok) {
         const userData = await userRes.json();
+        console.log("Dashboard fetched user data:", userData);
         setTotalBalance(userData.balance + userData.totalReturns);
         setInvested(userData.totalInvested);
         setAvailableCash(userData.balance);
@@ -77,9 +78,13 @@ export default function Dashboard({ user, setActiveTab }) {
   };
 
   useEffect(() => {
-    fetchData();
+    // Small delay for the first fetch to ensure backend sync is complete
+    const initialTimeout = setTimeout(fetchData, 1000);
     const interval = setInterval(fetchData, 5000); // Real-time refresh every 5s
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
   }, [user.uid]);
 
   return (
@@ -127,7 +132,7 @@ export default function Dashboard({ user, setActiveTab }) {
           </motion.div>
         )}
 
-        {availableCash === 5 && invested === 0 && (
+        {recentReturns.some(tx => tx.name === 'Registration Bonus') && invested === 0 && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -153,13 +158,27 @@ export default function Dashboard({ user, setActiveTab }) {
               Market <span className="text-gray-600">Overview.</span>
             </h1>
           </div>
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-xl border border-white/10 p-3 md:p-4 rounded-3xl self-start md:self-auto">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-[8px] md:text-[10px] text-gray-500 font-black uppercase tracking-widest">Market Status</p>
-              <p className="text-xs md:text-sm font-black text-green-500 uppercase tracking-widest">Active Wave</p>
+          <div className="flex items-center gap-4 self-start md:self-auto">
+            <button 
+              onClick={fetchData}
+              className="flex items-center gap-4 bg-white/5 backdrop-blur-xl border border-white/10 p-3 md:p-4 rounded-3xl hover:bg-white/10 transition-all group"
+            >
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-active:rotate-180 transition-transform duration-500">
+                <RefreshCw className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-[8px] md:text-[10px] text-gray-500 font-black uppercase tracking-widest">System Sync</p>
+                <p className="text-xs md:text-sm font-black text-blue-500 uppercase tracking-widest">Refresh Data</p>
+              </div>
+            </button>
+            <div className="flex items-center gap-4 bg-white/5 backdrop-blur-xl border border-white/10 p-3 md:p-4 rounded-3xl">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-green-600 flex items-center justify-center shadow-lg shadow-green-500/20">
+                <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-[8px] md:text-[10px] text-gray-500 font-black uppercase tracking-widest">Market Status</p>
+                <p className="text-xs md:text-sm font-black text-green-500 uppercase tracking-widest">Active Wave</p>
+              </div>
             </div>
           </div>
         </div>

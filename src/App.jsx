@@ -44,6 +44,8 @@ export default function App() {
             }),
           });
           if (syncRes.ok) {
+            const syncedUser = await syncRes.json();
+            console.log("User synced successfully with MongoDB:", syncedUser);
             // Clear referral code after successful sync
             localStorage.removeItem('referralCode');
           } else {
