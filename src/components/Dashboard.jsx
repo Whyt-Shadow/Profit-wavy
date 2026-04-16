@@ -78,7 +78,7 @@ export default function Dashboard({ user, setActiveTab }) {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30s
+    const interval = setInterval(fetchData, 5000); // Real-time refresh every 5s
     return () => clearInterval(interval);
   }, [user.uid]);
 
@@ -160,7 +160,13 @@ export default function Dashboard({ user, setActiveTab }) {
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6 md:mb-10">
               <div className="space-y-1">
-                <p className="text-[10px] md:text-xs font-black text-blue-200 uppercase tracking-[0.3em]">Total Portfolio Value</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] md:text-xs font-black text-blue-200 uppercase tracking-[0.3em]">Total Portfolio Value</p>
+                  <div className="flex items-center gap-1 bg-green-500/20 px-2 py-0.5 rounded-full border border-green-500/30">
+                    <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[6px] font-black text-green-400 uppercase tracking-widest">Live</span>
+                  </div>
+                </div>
                 <h2 className="text-4xl md:text-6xl font-black tracking-tighter font-display italic">{formatCurrency(totalBalance)}</h2>
               </div>
               <div className="bg-white/20 backdrop-blur-md p-3 md:p-4 rounded-2xl md:rounded-3xl border border-white/20">
@@ -181,13 +187,13 @@ export default function Dashboard({ user, setActiveTab }) {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 gap-6 md:gap-8">
           {/* Quick Action Card */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="lg:col-span-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-10 flex flex-col justify-between group"
+            className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-10 flex flex-col justify-between group"
           >
             <div className="space-y-6 md:space-y-8">
               <div className="flex items-center justify-between">
@@ -217,75 +223,6 @@ export default function Dashboard({ user, setActiveTab }) {
               <p className="text-[8px] md:text-[10px] text-gray-600 font-black uppercase tracking-widest">Secure Transactions via Paystack</p>
             </div>
           </motion.div>
-
-          {/* Active Returns Card */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="lg:col-span-8 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-10 group overflow-hidden relative"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full blur-[100px] -mr-32 -mt-32" />
-            
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="flex items-center justify-between mb-6 md:mb-10">
-                <div className="space-y-1">
-                  <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Performance Metrics</h3>
-                  <p className="text-xs md:text-sm font-black text-green-500 uppercase tracking-widest flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    +12.5% Growth
-                  </p>
-                </div>
-                <div className="bg-green-500/20 backdrop-blur-md p-2 md:p-3 rounded-xl md:rounded-2xl border border-green-500/20">
-                  <PieChartIcon className="w-5 h-5 md:w-6 md:h-6 text-green-500" />
-                </div>
-              </div>
-
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-                <div className="space-y-4 md:space-y-6">
-                  <div>
-                    <p className="text-4xl md:text-5xl font-black font-display italic tracking-tighter">{formatCurrency(activeReturns)}</p>
-                    <p className="text-[10px] md:text-xs text-gray-500 font-black uppercase tracking-widest mt-2">Unrealized Active Gains</p>
-                  </div>
-                  <button 
-                    onClick={() => setActiveTab('products')}
-                    className="w-full py-4 md:py-5 rounded-2xl md:rounded-3xl bg-white text-black text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-3 group/btn shadow-xl shadow-white/5"
-                  >
-                    View Portfolio Details
-                    <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />
-                  </button>
-                </div>
-
-                <div className="h-32 md:h-48 w-full relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={[
-                      { v: 10 }, { v: 15 }, { v: 12 }, { v: 20 }, { v: 18 }, { v: 25 }, { v: 22 }, { v: 30 }
-                    ]}>
-                      <defs>
-                        <linearGradient id="colorV" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <Area type="monotone" dataKey="v" stroke="#10b981" fillOpacity={1} fill="url(#colorV)" strokeWidth={4} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-          <div className="lg:col-span-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[48px] p-8 md:p-10 flex flex-col md:flex-row justify-center items-center text-center md:text-left gap-6 md:gap-10 group">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-blue-600/10 flex items-center justify-center border border-blue-600/20 group-hover:scale-110 transition-transform shrink-0">
-              <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
-            </div>
-            <div className="space-y-2 max-w-2xl">
-              <h3 className="text-xl md:text-2xl font-black font-display uppercase italic">Institutional Trust & Security</h3>
-              <p className="text-xs md:text-sm text-gray-500 font-medium leading-relaxed">Your capital is protected by vault-grade security, multi-sig protocols, and institutional custody. We ensure the highest level of protection for your digital assets.</p>
-            </div>
-          </div>
         </div>
 
         {/* Recent Activity Card */}
