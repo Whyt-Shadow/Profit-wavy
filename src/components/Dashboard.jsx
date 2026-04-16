@@ -52,29 +52,23 @@ export default function Dashboard({ user, setActiveTab }) {
     
     // Check system status first to see if DB is actually connected
     try {
-      const statusRes = await fetch('/api/system/status');
-      const statusText = await statusRes.text();
+      const statusRes = await fetch('/api/system/status', { signal: AbortSignal.timeout(5000) });
       if (statusRes.ok) {
-        try {
-          const status = JSON.parse(statusText);
-          if (status.db === 'disconnected') {
-            setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
-            return;
-          }
-        } catch (e) {
-          console.error("DASHBOARD: Failed to parse status JSON", e);
+        const status = await statusRes.json();
+        if (status.db === 'disconnected') {
+          setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
+          return;
         }
-      } else {
-        console.error("DASHBOARD: System status check failed. Content:", statusText.substring(0, 100));
       }
     } catch (e) {
-      console.warn("System status check failed", e);
+      console.warn("System status check pending or failed", e);
+      // Don't stop here, try to fetch user data anyway as the server might just be slow
     }
 
     setDbError(null);
     try {
       // Fetch User Data from MongoDB
-      const userRes = await fetch(`/api/users/${user.uid}`);
+      const userRes = await fetch(`/api/users/${user.uid}`, { signal: AbortSignal.timeout(8000) });
       const userText = await userRes.text();
       
       if (userRes.ok) {
@@ -105,7 +99,7 @@ export default function Dashboard({ user, setActiveTab }) {
       }
 
       // Fetch Transactions from MongoDB
-      const txRes = await fetch(`/api/transactions/${user.uid}`);
+      const txRes = await fetch(`/api/transactions/${user.uid}`, { signal: AbortSignal.timeout(8000) });
       const txText = await txRes.text();
 
       if (txRes.ok) {
@@ -144,7 +138,7 @@ export default function Dashboard({ user, setActiveTab }) {
   useEffect(() => {
     // Small delay for the first fetch to ensure backend sync is complete
     const initialTimeout = setTimeout(fetchData, 1000);
-    const interval = setInterval(fetchData, 5000); // Real-time refresh every 5s
+    const interval = setInterval(fetchData, 15000); // Institutional refresh every 15s to maintain stability
     
     // Listen for sync completion event from App.jsx
     const handleSync = () => {

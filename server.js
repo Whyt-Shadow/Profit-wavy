@@ -19,7 +19,7 @@ if (!MONGODB_URI) {
 async function startServer() {
   try {
     const app = express();
-    const PORT = process.env.PORT || 3000;
+    const PORT = 3000;
 
     app.use(express.json());
    
@@ -27,8 +27,7 @@ async function startServer() {
     const checkMongoConnection = (req, res, next) => {
       const isPublicRoute = ['/api/health', '/api/test', '/api/system/status'].includes(req.path);
       if (mongoose.connection.readyState !== 1 && req.path.startsWith('/api/') && !isPublicRoute) {
-        console.warn(`[DB-GUARD] Service Unavailable: DB not connected for ${req.path}`);
-        return res.status(503).json({ error: "Database connection is not ready. Please check MONGODB_URI." });
+        return res.status(503).json({ error: "Database connection is not ready. Please confirm your MONGODB_URI in Settings." });
       }
       next();
     };
@@ -36,7 +35,11 @@ async function startServer() {
 
     // Request logging middleware
     app.use((req, res, next) => {
-      console.log(`[REQ] ${new Date().toISOString()} - ${req.method} ${req.url}`);
+      const start = Date.now();
+      res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(`[REQ] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
+      });
       next();
     });
 
@@ -80,56 +83,44 @@ async function startServer() {
   // Get or Create User
   app.post("/api/users/sync", async (req, res) => {
     const { uid, email, phone, displayName, photoURL, referralCode: referredBy } = req.body;
-    console.log(`[SYNC] Request for UID ${uid}, Email ${email}, Phone ${phone}`);
     
-    // Use a session if possible for atomicity
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
-      // 1. Try finding by UID
-      let user = await User.findOne({ uid }).session(session);
+      let user = await User.findOne({ uid });
       
-      // 2. If not found by UID, try finding by email or phone to link accounts
       if (!user) {
-        if (email) user = await User.findOne({ email }).session(session);
-        if (!user && phone) user = await User.findOne({ phone }).session(session);
+        if (email) user = await User.findOne({ email });
+        if (!user && phone) user = await User.findOne({ phone });
         
         if (user) {
-          console.log(`[SYNC] Linking UID ${uid} to existing user record`);
           user.uid = uid;
-          await user.save({ session });
+          await user.save();
         }
       }
 
-      // 3. If still no user, create a new record
       if (!user) {
-        console.log(`[SYNC] Creating new user for UID ${uid}`);
         const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        user = (await User.create([{ 
+        user = await User.create({ 
           uid, 
-          email,
+          email: email || `user_${uid}@profitwavy.placeholder`,
           phone,
           displayName, 
           photoURL, 
           referralCode: newReferralCode,
           referredBy: referredBy || null,
-          balance: 5 // Default now 5 in schema, but explicit here for safety
-        }], { session }))[0];
+          balance: 5
+        });
 
-        await Transaction.create([{
+        await Transaction.create({
           userId: uid,
           type: 'bonus',
           amount: 5,
           planName: 'Registration Bonus'
-        }], { session });
+        });
 
-        await session.commitTransaction();
-        session.endSession();
         return res.status(201).json(user);
       } 
       
-      // 4. For existing users, check for metadata updates
+      // Update metadata if needed
       let needsSave = false;
       if (displayName && user.displayName !== displayName) {
         user.displayName = displayName;
@@ -143,42 +134,24 @@ async function startServer() {
         user.photoURL = photoURL;
         needsSave = true;
       }
-      if (needsSave) await user.save({ session });
+      if (needsSave) await user.save();
 
-      // 5. Registration bonus check (Retroactive & Idempotent)
-      const bonusExists = await Transaction.findOne({ 
-        userId: user.uid, 
-        type: 'bonus', 
-        planName: 'Registration Bonus' 
-      }).session(session);
-
+      // Ensure bonus exists for existing user if missing
+      const bonusExists = await Transaction.findOne({ userId: user.uid, type: 'bonus', planName: 'Registration Bonus' });
       if (!bonusExists) {
-        console.log(`[SYNC] Ensuring registration bonus for user ${user.uid}`);
-        
-        // If they have less than 5 balance and no bonus record, add it
-        if (user.balance < 5) {
-          user.balance += 5;
-          await user.save({ session });
-        }
-        
-        await Transaction.create([{
+        await Transaction.create({
           userId: user.uid,
           type: 'bonus',
           amount: 5,
           planName: 'Registration Bonus'
-        }], { session });
-        
-        user = await User.findOne({ uid: user.uid }).session(session);
+        });
+        // We don't adjust balance here to avoid double-crediting if balance was previously spent
       }
 
-      await session.commitTransaction();
-      session.endSession();
       res.json(user);
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("[SYNC-ERROR]", error);
-      res.status(500).json({ error: "Failed to sync user" });
+      res.status(500).json({ error: "System failed to sync user data" });
     }
   });
 
@@ -425,13 +398,21 @@ async function startServer() {
   app.listen(Number(PORT), "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`MongoDB URI defined: ${!!MONGODB_URI}`);
   });
   } catch (err) {
     console.error("FATAL: Failed to start server:", err);
     process.exit(1);
   }
 }
+
+// Global process error handlers
+process.on('uncaughtException', (err) => {
+  console.error('[CRITICAL] Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
 startServer().catch(err => {
   console.error("CRITICAL: Unhandled error in startServer chain:", err);
