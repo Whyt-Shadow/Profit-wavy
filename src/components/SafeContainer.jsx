@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
-class ErrorBoundary extends React.Component {
+class SafeContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -12,7 +12,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error("SafeContainer caught an error:", error, errorInfo);
   }
 
   render() {
@@ -64,4 +64,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundary;
+export default SafeContainer;

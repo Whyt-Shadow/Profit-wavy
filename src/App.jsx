@@ -10,7 +10,7 @@ import Auth from './components/Auth';
 import LandingPage from './components/LandingPage';
 import BottomNav from './components/BottomNav';
 import Footer from './components/Footer';
-import ErrorBoundary from './components/ErrorBoundary';
+import SafeContainer from './components/SafeContainer';
 import { NotificationProvider } from './components/NotificationProvider';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -177,9 +177,9 @@ export default function App() {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
                   >
-                    <ErrorBoundary>
+                    <SafeContainer>
                       {renderContent()}
-                    </ErrorBoundary>
+                    </SafeContainer>
                   </motion.div>
                 </AnimatePresence>
               </main>
