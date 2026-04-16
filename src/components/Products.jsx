@@ -4,6 +4,17 @@ import { Check, TrendingUp, Zap, Star, ShieldCheck, ArrowRight } from 'lucide-re
 export default function Products({ onInvest }) {
   const plans = [
     {
+      id: 'flash',
+      name: 'Flash Plan',
+      min: 'GH₵ 50',
+      returns: '30%',
+      duration: 'Every 10 Mins',
+      popular: true,
+      color: 'from-amber-500 to-orange-600',
+      icon: Zap,
+      isFlash: true
+    },
+    {
       id: 'starter',
       name: 'Starter Plan',
       min: 'GH₵ 100',
@@ -174,6 +185,12 @@ export default function Products({ onInvest }) {
                     <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Daily ROI</span>
                     <span className="text-green-500 font-black font-display text-xl">{plan.returns}</span>
                   </div>
+                  {plan.duration && (
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+                      <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Duration</span>
+                      <span className="text-blue-400 font-black font-display text-sm">{plan.duration}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 text-gray-400 font-bold text-xs uppercase tracking-widest">
                     <Check className="w-5 h-5 text-blue-500 stroke-[3px]" />
                     <span>5% Registration Bonus</span>

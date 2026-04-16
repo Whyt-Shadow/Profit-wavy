@@ -141,14 +141,16 @@ export default function App() {
 
               <button 
                 onClick={() => setShowAuth(false)}
-                className="absolute top-8 left-8 text-[10px] font-black text-gray-500 hover:text-white transition-all flex items-center gap-3 uppercase tracking-[0.3em] group"
+                className="absolute top-8 left-8 text-[10px] font-black text-gray-500 hover:text-white transition-all flex items-center gap-3 uppercase tracking-[0.3em] group z-50"
               >
                 <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-all">
                   <motion.span animate={{ x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>←</motion.span>
                 </div>
                 Exit to Terminal
               </button>
-              <Auth />
+              <div className="w-full max-w-md relative z-10">
+                <Auth />
+              </div>
             </motion.div>
           )
         ) : (

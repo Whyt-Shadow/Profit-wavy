@@ -146,6 +146,38 @@ async function startServer() {
         if (type === 'investment') {
           user.totalInvested += amount;
           user.balance -= amount;
+
+          // Automated recurring return for Flash Plan (30% every 10 minutes)
+          if (planName === 'Flash Plan') {
+            const profitRate = 0.30; // 30% profit
+            const profitAmount = amount * profitRate;
+            
+            // We use an interval for recurring returns
+            const intervalId = setInterval(async () => {
+              try {
+                const returnUser = await User.findOne({ uid: userId });
+                if (returnUser) {
+                  // Check if user still has this investment active (in a real app we'd track active investments)
+                  // For this logic, we'll just keep paying out as requested
+                  returnUser.balance += profitAmount;
+                  returnUser.totalReturns += profitAmount;
+                  await returnUser.save();
+                  await Transaction.create({
+                    userId,
+                    type: 'return',
+                    amount: profitAmount,
+                    planName: 'Flash Plan Recurring Return (30%)'
+                  });
+                  console.log(`Processed recurring 10-minute 30% Flash Plan return for user ${userId}`);
+                } else {
+                  clearInterval(intervalId);
+                }
+              } catch (err) {
+                console.error("Error processing Flash Plan recurring return:", err);
+                clearInterval(intervalId);
+              }
+            }, 10 * 60 * 1000); // Every 10 minutes
+          }
         } else if (type === 'return') {
           user.totalReturns += amount;
           user.balance += amount; // Assuming returns go to balance
