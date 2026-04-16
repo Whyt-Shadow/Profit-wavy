@@ -69,7 +69,16 @@ async function startServer() {
           displayName, 
           photoURL, 
           referralCode: newReferralCode,
-          referredBy: referredBy || null
+          referredBy: referredBy || null,
+          balance: 5 // Initial registration bonus
+        });
+
+        // Create bonus transaction
+        await Transaction.create({
+          userId: uid,
+          type: 'bonus',
+          amount: 5,
+          planName: 'Registration Bonus'
         });
       }
       res.json(user);
@@ -182,21 +191,6 @@ async function startServer() {
           user.totalReturns += amount;
           user.balance += amount; // Assuming returns go to balance
         } else if (type === 'deposit') {
-          // Check if this is the first deposit for registration bonus
-          const previousDeposits = await Transaction.countDocuments({ userId, type: 'deposit' });
-          
-          let finalAmount = amount;
-          if (previousDeposits === 1) { // This is the first deposit (count is 1 because we just created it)
-            const regBonus = amount * 0.05;
-            user.balance += regBonus;
-            await Transaction.create({
-              userId,
-              type: 'bonus',
-              amount: regBonus,
-              planName: 'Registration Bonus (5%)'
-            });
-          }
-          
           user.balance += amount;
 
           // Handle Referral Bonus (0.05% of deposit to the referrer)

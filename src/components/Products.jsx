@@ -193,7 +193,7 @@ export default function Products({ onInvest }) {
                   )}
                   <div className="flex items-center gap-4 text-gray-400 font-bold text-xs uppercase tracking-widest">
                     <Check className="w-5 h-5 text-blue-500 stroke-[3px]" />
-                    <span>5% Registration Bonus</span>
+                    <span>GH₵ 5 Registration Bonus</span>
                   </div>
                   <div className="flex items-center gap-4 text-gray-400 font-bold text-xs uppercase tracking-widest">
                     <Check className="w-5 h-5 text-blue-500 stroke-[3px]" />
