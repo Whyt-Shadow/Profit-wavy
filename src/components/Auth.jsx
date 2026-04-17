@@ -93,16 +93,22 @@ export default function Auth() {
       } else {
         // Proactive institutional database verification
         try {
-          const checkRes = await fetch(`/api/users/lookup?identity=${encodeURIComponent(email)}`);
-          if (checkRes.ok) {
-            const checkData = await checkRes.json();
-            if (checkData.email) {
-              setError('An account already exists with this email. Redirecting to login...');
-              setTimeout(() => {
-                setIsLogin(true);
-                setError(null);
-              }, 2500);
-              return;
+          // Check if Email or Phone already exists to prevent duplicate account creation
+          const identitiesToCheck = [email];
+          if (phone) identitiesToCheck.push(phone);
+
+          for (const identity of identitiesToCheck) {
+            const checkRes = await fetch(`/api/users/lookup?identity=${encodeURIComponent(identity)}`);
+            if (checkRes.ok) {
+              const checkData = await checkRes.json();
+              if (checkData.email) {
+                setError(`Existing account detected (${identity === email ? 'Email' : 'Phone'}). Redirecting to login...`);
+                setTimeout(() => {
+                  setIsLogin(true);
+                  setError(null);
+                }, 2500);
+                return; // Explicitly cancel account creation
+              }
             }
           }
         } catch (checkErr) {
@@ -170,10 +176,12 @@ export default function Auth() {
       });
 
       if (!isLogin && syncRes.status === 200) {
-        setError('You already have an account. Redirecting to your dashboard...');
+        setError('You already have an account. Redirecting to login page...');
         setTimeout(() => {
+          setIsLogin(true);
           setError(null);
         }, 2500);
+        return;
       }
     } catch (err) {
       console.error('Google Auth error:', err);
