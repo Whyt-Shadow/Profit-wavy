@@ -91,6 +91,24 @@ export default function Auth() {
         }
         await signInWithEmailAndPassword(auth, signId, password);
       } else {
+        // Proactive institutional database verification
+        try {
+          const checkRes = await fetch(`/api/users/lookup?identity=${encodeURIComponent(email)}`);
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            if (checkData.email) {
+              setError('An account already exists with this email. Redirecting to login...');
+              setTimeout(() => {
+                setIsLogin(true);
+                setError(null);
+              }, 2500);
+              return;
+            }
+          }
+        } catch (checkErr) {
+          console.warn("Institutional check bypassed due to network status.", checkErr);
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName });
         
