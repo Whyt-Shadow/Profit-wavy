@@ -86,6 +86,17 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        // Diagnostic check: verify server is listening
+        try {
+          const diagRes = await fetch('/api/diagnostics');
+          if (!diagRes.ok) throw new Error("Server reporting issues");
+          console.log("Terminal Diagnostics: OK");
+        } catch (diagErr) {
+          console.error("DIAGNOSTICS FAILED:", diagErr);
+          setSyncError("Terminal connection unreachable. Please check server status.");
+          // We continue anyway, but this gives us a hint in the logs
+        }
+
         // Sync with MongoDB
         try {
           const referralCode = window.safeLocalStorage.getItem('referralCode');

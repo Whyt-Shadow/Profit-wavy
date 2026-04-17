@@ -8,21 +8,32 @@ import { User, Transaction } from "./src/models/index.js";
 
 dotenv.config();
 
+const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
 if (!MONGODB_URI) {
-  console.error("CRITICAL: MONGODB_URI is not defined in environment variables.");
+  console.warn("CRITICAL WARNING: MONGODB_URI is not defined. Database features will be disabled.");
 }
 
 async function startServer() {
   try {
     const app = express();
-    const PORT = 3000;
 
     app.use(express.json());
+
+    // Basic diagnostics endpoint (bypasses all middleware)
+    app.get("/api/diagnostics", (req, res) => {
+      res.json({
+        ok: true,
+        env: process.env.NODE_ENV || 'development',
+        hasMongo: !!MONGODB_URI,
+        mongoStatus: mongoose.connection.readyState,
+        port: PORT
+      });
+    });
    
     // MongoDB Connection Status Middleware
     const checkMongoConnection = (req, res, next) => {
@@ -582,19 +593,26 @@ async function startServer() {
 
   // Catch-all for unmatched API routes
   app.all("/api/*", (req, res) => {
-    console.log(`Unmatched API route: ${req.method} ${req.url}`);
-    res.status(404).json({ error: `Route ${req.method} ${req.url} not found` });
+    console.log(`[API-MISS] ${req.method} ${req.url}`);
+    res.status(404).json({ error: `Institutional Route ${req.method} ${req.url} not found` });
   });
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    console.log("Initializing Vite Middleware (Development Mode)...");
+    try {
+      const { createServer: createViteServer } = await import("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+      console.log("Vite Middleware Ready.");
+    } catch (viteErr) {
+      console.error("FAILED to initialize Vite Middleware:", viteErr.message);
+    }
   } else {
+    console.log("Serving Static Assets (Production Mode)...");
     const distPath = path.resolve(__dirname, "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
@@ -602,9 +620,9 @@ async function startServer() {
     });
   }
 
-  app.listen(Number(PORT), "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`[SERVER] Profit Wavy Terminal ACTIVE on port ${PORT}`);
+    console.log(`[SERVER] Mode: ${process.env.NODE_ENV || 'development'}`);
   });
   } catch (err) {
     console.error("FATAL: Failed to start server:", err);
