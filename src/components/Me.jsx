@@ -415,6 +415,39 @@ export default function Me({ user: firebaseUser }) {
                     <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{firebaseUser.email}</span>
                   </div>
                 </div>
+
+                {/* Referral Link Quick Access */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="w-full bg-blue-600/10 border border-blue-500/20 rounded-[28px] p-6 space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Zap className="w-5 h-5 text-blue-500" />
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Institutional Referral Link</span>
+                    </div>
+                    <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{userData?.referralCount || 0} Referrals</span>
+                  </div>
+                  <div className="flex items-center gap-4 bg-black/40 p-4 rounded-2xl border border-white/5">
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-[8px] font-bold text-gray-500 uppercase mb-1">Your Unique Invite URL</p>
+                      <p className="text-[10px] font-black text-white truncate">{window.location.origin}?ref={userData?.referralCode || '...'}</p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const link = `${window.location.origin}?ref=${userData?.referralCode}`;
+                        navigator.clipboard.writeText(link).then(() => {
+                          showNotification("Institutional invite link copied!", "success");
+                        });
+                      }}
+                      className="shrink-0 bg-blue-600 text-white px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </motion.div>
               </div>
 
               <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] md:rounded-[48px] overflow-hidden shadow-2xl">
