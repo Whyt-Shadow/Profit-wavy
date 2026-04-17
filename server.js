@@ -84,19 +84,36 @@ async function startServer() {
   app.post("/api/users/sync", async (req, res) => {
     const { uid, email, phone, displayName, photoURL, referralCode: referredBy } = req.body;
     
+    if (!uid) return res.status(400).json({ error: "UID is required" });
+
     try {
+      // 1. Try finding by UID first (Standard login)
       let user = await User.findOne({ uid });
       
+      // 2. If no user by UID, check if this email/phone already belongs to someone (Registration/Linking)
       if (!user) {
-        if (email) user = await User.findOne({ email });
-        if (!user && phone) user = await User.findOne({ phone });
+        if (email) {
+          user = await User.findOne({ email });
+          if (user && user.uid && user.uid !== uid) {
+            console.log(`[SYNC] Linking existing email ${email} to new UID ${uid}`);
+          }
+        }
+        
+        if (!user && phone) {
+          user = await User.findOne({ phone });
+          if (user && user.uid && user.uid !== uid) {
+             console.log(`[SYNC] Linking existing phone ${phone} to new UID ${uid}`);
+          }
+        }
         
         if (user) {
+          // One email can only register once - we link it to the new provider UID
           user.uid = uid;
           await user.save();
         }
       }
 
+      // 3. Create new user if still not found
       if (!user) {
         const newReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         user = await User.create({ 

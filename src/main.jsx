@@ -11,7 +11,9 @@ window.onerror = function(message, source, lineno, colno, error) {
 };
 
 window.onunhandledrejection = function(event) {
-  console.error('GLOBAL-UNHANDLED-REJECTION:', event.reason);
+  const reason = event.reason;
+  const message = reason?.message || (typeof reason === 'string' ? reason : JSON.stringify(reason));
+  console.error('GLOBAL-UNHANDLED-REJECTION:', message || 'No reason provided', { reason });
 };
 
 // Safety for localStorage in restricted environments

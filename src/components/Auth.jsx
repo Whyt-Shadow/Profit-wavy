@@ -109,9 +109,21 @@ export default function Auth() {
     } catch (err) {
       console.error('Auth error:', err);
       let msg = err && typeof err === 'object' ? err.message : String(err);
-      if (msg && msg.includes('auth/user-not-found')) msg = 'User not found.';
-      if (msg && msg.includes('auth/wrong-password')) msg = 'Incorrect password.';
-      if (msg && msg.includes('auth/invalid-credential')) msg = 'Invalid phone/email or password.';
+      
+      if (msg && msg.includes('auth/email-already-in-use')) {
+        msg = 'You already have an account. Redirecting to login...';
+        setTimeout(() => {
+          setIsLogin(true);
+          setError(null);
+        }, 2500);
+      } else if (msg && msg.includes('auth/user-not-found')) {
+        msg = 'User not found.';
+      } else if (msg && msg.includes('auth/wrong-password')) {
+        msg = 'Incorrect password.';
+      } else if (msg && msg.includes('auth/invalid-credential')) {
+        msg = 'Invalid phone/email or password.';
+      }
+      
       setError(msg || 'An error occurred.');
     } finally {
       setLoading(false);
@@ -125,7 +137,7 @@ export default function Auth() {
       const result = await signInWithPopup(auth, googleProvider);
       
       // Sync with MongoDB
-      await fetch('/api/users/sync', {
+      const syncRes = await fetch('/api/users/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -136,9 +148,25 @@ export default function Auth() {
           referralCode: referralCode || undefined
         })
       });
+
+      if (!isLogin && syncRes.status === 200) {
+        setError('You already have an account. Redirecting to your dashboard...');
+        setTimeout(() => {
+          setError(null);
+        }, 2500);
+      }
     } catch (err) {
       console.error('Google Auth error:', err);
-      const msg = err && typeof err === 'object' ? err.message : String(err);
+      let msg = err && typeof err === 'object' ? err.message : String(err);
+      
+      if (msg && msg.includes('auth/account-exists-with-different-credential')) {
+        msg = 'An account already exists with this email. Please log in with your primary method.';
+        setTimeout(() => {
+          setIsLogin(true);
+          setError(null);
+        }, 3000);
+      }
+      
       setError(msg || 'An error occurred during Google Auth.');
     } finally {
       setLoading(false);

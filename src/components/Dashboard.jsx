@@ -54,30 +54,35 @@ export default function Dashboard({ user, setActiveTab }) {
   }, [user.uid]);
 
   const fetchData = async () => {
-    if (!user?.uid) return;
-    
-    // Check system status first to see if DB is actually connected
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const statusRes = await fetch('/api/system/status', { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (statusRes.ok) {
-        const status = await statusRes.json();
-        if (status.db === 'disconnected') {
-          setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
-          return;
+      if (!user?.uid) return;
+      
+      // Check system status first to see if DB is actually connected
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort("System status check timeout"), 5000);
+        const statusRes = await fetch('/api/system/status', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (statusRes.ok) {
+          const status = await statusRes.json();
+          if (status.db === 'disconnected') {
+            setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
+            return;
+          }
         }
+      } catch (e) {
+        if (e.name === 'AbortError' || e === 'System status check timeout') {
+          console.warn("System status check timed out");
+        } else {
+          console.warn("System status check failed", e);
+        }
+        // Don't stop here, try to fetch user data anyway as the server might just be slow
       }
-    } catch (e) {
-      console.warn("System status check pending or failed", e);
-      // Don't stop here, try to fetch user data anyway as the server might just be slow
-    }
 
-    setDbError(null);
-    try {
+      setDbError(null);
+      
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const timeoutId = setTimeout(() => controller.abort("User data fetch timeout"), 12000); // Increased timeout for stability
 
       // Fetch User Data from MongoDB
       const userRes = await fetch(`/api/users/${user.uid}`, { signal: controller.signal });
@@ -111,7 +116,7 @@ export default function Dashboard({ user, setActiveTab }) {
 
       // Fetch Transactions from MongoDB
       const txController = new AbortController();
-      const txTimeoutId = setTimeout(() => txController.abort(), 8000);
+      const txTimeoutId = setTimeout(() => txController.abort("Transaction fetch timeout"), 12000);
       const txRes = await fetch(`/api/transactions/${user.uid}`, { signal: txController.signal });
       const txText = await txRes.text();
       clearTimeout(txTimeoutId);
@@ -142,23 +147,32 @@ export default function Dashboard({ user, setActiveTab }) {
         }
       }
     } catch (error) {
-      console.error("Network error fetching data from MongoDB:", error);
-      // Only show error if it's not a background refresh failure to avoid persistent UI flickers
-      if (recentReturns.length === 0) {
-        setDbError("Network error. Please check your connection.");
+      if (error.name === 'AbortError' || error === 'User data fetch timeout' || error === 'Transaction fetch timeout') {
+        console.warn("Dashboard sync timed out, skipping this cycle.");
+      } else {
+        console.error("Network error fetching data from MongoDB:", error);
+        // Only show error if it's not a background refresh failure to avoid persistent UI flickers
+        if (recentReturns.length === 0) {
+          setDbError("Network error. Please check your connection.");
+        }
       }
     }
   };
 
   useEffect(() => {
     // Small delay for the first fetch to ensure backend sync is complete
-    const initialTimeout = setTimeout(fetchData, 1000);
-    const interval = setInterval(fetchData, 15000); // Institutional refresh every 15s to maintain stability
+    const initialTimeout = setTimeout(() => {
+      fetchData().catch(err => console.error("DASHBOARD-INITIAL-FETCH-ERROR", err));
+    }, 1000);
+    
+    const interval = setInterval(() => {
+      fetchData().catch(err => console.error("DASHBOARD-POLL-ERROR", err));
+    }, 15000); // Institutional refresh every 15s to maintain stability
     
     // Listen for sync completion event from App.jsx
     const handleSync = () => {
       console.log("DASHBOARD: Sync event received, refreshing data...");
-      fetchData();
+      fetchData().catch(err => console.error("DASHBOARD-SYNC-ERROR", err));
     };
     window.addEventListener('user-synced', handleSync);
 

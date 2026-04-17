@@ -39,7 +39,14 @@ export default function Me({ user: firebaseUser }) {
     setShowTerms(true);
   };
 
-  const handleSignOut = () => signOut(auth);
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error("Sign out failed:", e);
+      showNotification("Sign out failed. Please try again.", "error");
+    }
+  };
 
   useEffect(() => {
     fetchUserData();
