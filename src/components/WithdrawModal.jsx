@@ -33,11 +33,14 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
     
     setLoading(true);
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("Authentication stale. Please sign in again.");
+
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: auth.currentUser.uid,
+          userId: currentUser.uid,
           type: 'withdrawal',
           amount: withdrawAmount,
           planName: `Withdrawal to ${method.toUpperCase()} (${network})`,
@@ -93,7 +96,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
             <div className="space-y-6 relative z-10">
               <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex justify-between items-center">
                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Available Balance</span>
-                <span className="text-xl font-black font-display text-blue-500">GH₵ {balance.toLocaleString()}</span>
+                <span className="text-xl font-black font-display text-blue-500">GH₵ {(balance || 0).toLocaleString()}</span>
               </div>
 
               <div className="space-y-2">

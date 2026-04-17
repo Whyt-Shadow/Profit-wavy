@@ -23,6 +23,12 @@ export default function App() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
 
+  // Helper to change tabs and clear state
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSelectedPlan(null);
+  };
+
   // Sync state with browser history for back button support
   useEffect(() => {
     const handlePopState = (event) => {
@@ -36,8 +42,12 @@ export default function App() {
     window.addEventListener('popstate', handlePopState);
     
     // Initial state setup if missing
-    if (!window.history.state) {
-      window.history.replaceState({ activeTab, selectedPlan, showAuth }, '');
+    try {
+      if (!window.history.state) {
+        window.history.replaceState({ activeTab, selectedPlan, showAuth }, '');
+      }
+    } catch (e) {
+      console.warn("History replaceState failed:", e);
     }
 
     return () => window.removeEventListener('popstate', handlePopState);
@@ -45,29 +55,40 @@ export default function App() {
 
   // Push to history when major navigation state changes
   useEffect(() => {
-    const savedState = window.history.state;
-    if (savedState && (
-      savedState.activeTab !== activeTab || 
-      savedState.selectedPlan?.id !== selectedPlan?.id || 
-      savedState.showAuth !== showAuth
-    )) {
-      window.history.pushState({ activeTab, selectedPlan, showAuth }, '');
+    try {
+      const savedState = window.history.state;
+      const hasChanged = !savedState || (
+        savedState.activeTab !== activeTab || 
+        savedState.selectedPlan?.id !== selectedPlan?.id || 
+        savedState.showAuth !== showAuth
+      );
+
+      if (hasChanged) {
+        window.history.pushState({ activeTab, selectedPlan, showAuth }, '');
+      }
+    } catch (e) {
+      console.warn("History pushState failed:", e);
     }
   }, [activeTab, selectedPlan, showAuth]);
 
   useEffect(() => {
     // Capture referral code from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref');
-    if (ref) {
-      localStorage.setItem('referralCode', ref);
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref') || urlParams.get('referral');
+      if (ref) {
+        window.safeLocalStorage.setItem('referralCode', ref);
+      }
+    } catch (e) {
+      console.warn("URL params or referral capture failed:", e);
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Sync with MongoDB
         try {
-          const referralCode = localStorage.getItem('referralCode');
+          const referralCode = window.safeLocalStorage.getItem('referralCode');
+          
           const syncRes = await fetch('/api/users/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -89,7 +110,7 @@ export default function App() {
               // Dispatch event to notify dashboard
               window.dispatchEvent(new CustomEvent('user-synced'));
               // Clear referral code after successful sync
-              localStorage.removeItem('referralCode');
+              window.safeLocalStorage.removeItem('referralCode');
               setIsSynced(true);
               setSyncError(null);
             } catch (jsonErr) {
@@ -187,9 +208,13 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard user={user} setActiveTab={setActiveTab} />;
+        return <Dashboard user={user} setActiveTab={handleTabChange} />;
       case 'products':
-        return <Products onInvest={(plan) => setSelectedPlan(plan)} />;
+        return <Products onInvest={(plan) => {
+          console.log("NAV: Investing in plan:", plan?.name);
+          window.scrollTo({ top: 0, behavior: 'instant' });
+          setSelectedPlan(plan);
+        }} />;
       case 'me':
         return <Me user={user} />;
       default:
@@ -246,15 +271,15 @@ export default function App() {
               animate={{ opacity: 1 }}
               className="flex flex-col min-h-screen"
             >
-              <Navbar user={user} setActiveTab={setActiveTab} />
+              <Navbar user={user} setActiveTab={handleTabChange} />
               <main className="flex-1 container mx-auto px-4 pt-32 pb-32 max-w-7xl">
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout">
                   <motion.div
-                    key={activeTab + (selectedPlan ? '-payment' : '')}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    key={activeTab + (selectedPlan ? '-payment-' + selectedPlan.id : '')}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.02 }}
+                    transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
                   >
                     <SafeContainer>
                       {renderContent()}
@@ -264,10 +289,7 @@ export default function App() {
               </main>
               <BottomNav 
                 activeTab={activeTab} 
-                setActiveTab={(tab) => {
-                  setActiveTab(tab);
-                  setSelectedPlan(null);
-                }} 
+                setActiveTab={handleTabChange} 
               />
             </motion.div>
           )}

@@ -150,9 +150,18 @@ export default function Me({ user: firebaseUser }) {
                 </div>
                 <button 
                   onClick={() => {
-                    const link = `${window.location.origin}?ref=${userData?.referralCode}`;
-                    navigator.clipboard.writeText(link);
-                    showNotification("Referral link copied!", "success");
+                    try {
+                      const link = `${window.location.origin}?ref=${userData?.referralCode}`;
+                      navigator.clipboard.writeText(link).then(() => {
+                        showNotification("Referral link copied!", "success");
+                      }).catch((e) => {
+                        console.error("Clipboard write failed:", e);
+                        showNotification("Failed to copy link. Please select and copy manually.", "error");
+                      });
+                    } catch (e) {
+                      console.error("Clipboard access restricted:", e);
+                      showNotification("Clipboard access restricted.", "error");
+                    }
                   }}
                   className="w-full py-2 bg-blue-600/10 text-blue-500 text-[8px] font-black uppercase tracking-widest rounded-xl border border-blue-500/20 hover:bg-blue-600 hover:text-white transition-all"
                 >

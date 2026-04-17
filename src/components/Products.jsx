@@ -26,7 +26,7 @@ export default function Products({ onInvest }) {
       icon: Star
     },
     {
-      id: 'Gold Plan',
+      id: 'gold',
       name: 'Gold Plan',
       min: 'GH₵ 500',
       returns: 'GH₵ 125',
@@ -37,7 +37,7 @@ export default function Products({ onInvest }) {
       icon: ShieldCheck
     },
     {
-      id: 'Platinum Plan',
+      id: 'platinum',
       name: 'Platinum Plan',
       min: 'GH₵ 800',
       returns: 'GH₵ 200',
@@ -48,7 +48,7 @@ export default function Products({ onInvest }) {
       icon: Zap
     },
     {
-      id: 'Diamond Plan',
+      id: 'diamond',
       name: 'Diamond Plan',
       min: 'GH₵ 1000',
       returns: 'GH₵ 250',
@@ -59,7 +59,7 @@ export default function Products({ onInvest }) {
       icon: TrendingUp
     },
     {
-      id: 'Executive Plan',
+      id: 'executive',
       name: 'Executive Plan',
       min: 'GH₵ 1500',
       returns: 'GH₵ 375',
@@ -70,7 +70,7 @@ export default function Products({ onInvest }) {
       icon: Star
     },
     {
-      id: 'Premium Plan',
+      id: 'premium',
       name: 'Premium Plan',
       min: 'GH₵ 2000',
       returns: 'GH₵ 500',
@@ -81,7 +81,7 @@ export default function Products({ onInvest }) {
       icon: ShieldCheck
     },
     {
-      id: 'Elte Plan',
+      id: 'elite',
       name: 'Elite Plan',
       min: 'GH₵ 3000',
       returns: 'GH₵ 750',
@@ -92,7 +92,7 @@ export default function Products({ onInvest }) {
       icon: Zap
     },
     {
-      id: 'Legacy Plan',
+      id: 'legacy',
       name: 'Legacy Plan',
       min: 'GH₵ 5000',
       returns: 'GH₵ 1250',
@@ -214,8 +214,12 @@ export default function Products({ onInvest }) {
                 </div>
 
                 <button 
-                  onClick={() => onInvest(plan)}
-                  className="w-full mt-auto bg-white text-black font-black py-5 rounded-[24px] text-[10px] uppercase tracking-[0.3em] hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-white/5 active:scale-[0.95] flex items-center justify-center gap-3 group/btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("CLICK: Deploying capital for:", plan.name);
+                    onInvest(plan);
+                  }}
+                  className="w-full mt-auto bg-white text-black font-black py-5 rounded-[24px] text-[10px] uppercase tracking-[0.3em] hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-white/5 active:scale-[0.95] flex items-center justify-center gap-3 group/btn cursor-pointer relative z-50 pointer-events-auto"
                 >
                   Deploy Capital
                   <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />

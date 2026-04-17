@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   PieChart as PieChartIcon,
   Zap,
-  X
+  X,
+  Gift
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNotification } from './NotificationProvider';
@@ -41,9 +42,14 @@ export default function Dashboard({ user, setActiveTab }) {
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    const isDismissed = localStorage.getItem(`welcome_dismissed_${user.uid}`);
-    if (!isDismissed) {
-      setShowWelcome(true);
+    try {
+      const isDismissed = window.safeLocalStorage.getItem(`welcome_dismissed_${user.uid}`);
+      if (!isDismissed) {
+        setShowWelcome(true);
+      }
+    } catch (e) {
+      console.warn("localStorage restricted:", e);
+      setShowWelcome(true); // Default to showing if we can't check
     }
   }, [user.uid]);
 
@@ -52,7 +58,10 @@ export default function Dashboard({ user, setActiveTab }) {
     
     // Check system status first to see if DB is actually connected
     try {
-      const statusRes = await fetch('/api/system/status', { signal: AbortSignal.timeout(5000) });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const statusRes = await fetch('/api/system/status', { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (statusRes.ok) {
         const status = await statusRes.json();
         if (status.db === 'disconnected') {
@@ -67,26 +76,28 @@ export default function Dashboard({ user, setActiveTab }) {
 
     setDbError(null);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       // Fetch User Data from MongoDB
-      const userRes = await fetch(`/api/users/${user.uid}`, { signal: AbortSignal.timeout(8000) });
+      const userRes = await fetch(`/api/users/${user.uid}`, { signal: controller.signal });
       const userText = await userRes.text();
+      clearTimeout(timeoutId);
       
       if (userRes.ok) {
         let userData;
         try {
           userData = JSON.parse(userText);
-          console.log("DASHBOARD: User data loaded:", {
-            balance: userData.balance,
-            totalReturns: userData.totalReturns,
-            totalInvested: userData.totalInvested
-          });
-          setTotalBalance(userData.balance + userData.totalReturns);
-          setInvested(userData.totalInvested);
-          setAvailableCash(userData.balance);
-          setActiveReturns(userData.totalReturns);
+          const balance = Number(userData.balance) || 0;
+          const totalReturns = Number(userData.totalReturns) || 0;
+          const totalInvested = Number(userData.totalInvested) || 0;
+
+          setTotalBalance(balance + totalReturns);
+          setInvested(totalInvested);
+          setAvailableCash(balance);
+          setActiveReturns(totalReturns);
         } catch (jsonErr) {
           console.error("DASHBOARD: User data JSON parse failed. Response text:", userText.substring(0, 500));
-          throw jsonErr;
         }
       } else {
         try {
@@ -99,23 +110,27 @@ export default function Dashboard({ user, setActiveTab }) {
       }
 
       // Fetch Transactions from MongoDB
-      const txRes = await fetch(`/api/transactions/${user.uid}`, { signal: AbortSignal.timeout(8000) });
+      const txController = new AbortController();
+      const txTimeoutId = setTimeout(() => txController.abort(), 8000);
+      const txRes = await fetch(`/api/transactions/${user.uid}`, { signal: txController.signal });
       const txText = await txRes.text();
+      clearTimeout(txTimeoutId);
 
       if (txRes.ok) {
         let txData;
         try {
           txData = JSON.parse(txText);
-          setRecentReturns(txData.map((tx) => ({
-            id: tx._id,
-            name: tx.planName || tx.type,
-            amount: tx.amount,
-            type: tx.type === 'investment' || tx.type === 'withdrawal' ? 'loss' : 'gain',
-            date: new Date(tx.timestamp).toLocaleDateString()
-          })));
+          if (Array.isArray(txData)) {
+            setRecentReturns(txData.slice(0, 10).map((tx) => ({
+              id: tx._id || Math.random(),
+              name: tx.planName || (tx.type === 'withdrawal' ? 'Withdrawal' : 'Transaction'),
+              amount: Number(tx.amount) || 0,
+              type: tx.type === 'investment' || tx.type === 'withdrawal' ? 'loss' : 'gain',
+              date: new Date(tx.createdAt || tx.timestamp || Date.now()).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
+            })));
+          }
         } catch (jsonErr) {
           console.error("DASHBOARD: Transactions JSON parse failed. Response text:", txText.substring(0, 500));
-          throw jsonErr;
         }
       } else {
         try {
@@ -208,7 +223,7 @@ export default function Dashboard({ user, setActiveTab }) {
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-                <Plus className="w-6 h-6 text-white" />
+                <Gift className="w-6 h-6 text-white" />
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest">Welcome Reward</p>
@@ -218,7 +233,7 @@ export default function Dashboard({ user, setActiveTab }) {
             <button 
               onClick={() => {
                 setShowWelcome(false);
-                localStorage.setItem(`welcome_dismissed_${user.uid}`, 'true');
+                window.safeLocalStorage.setItem(`welcome_dismissed_${user.uid}`, 'true');
               }}
               className="p-2 hover:bg-white/10 rounded-xl transition-colors shrink-0"
             >

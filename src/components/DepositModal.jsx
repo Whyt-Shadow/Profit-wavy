@@ -31,11 +31,14 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
     initializePayment({
       onSuccess: async (reference) => {
         try {
+          const currentUser = auth.currentUser;
+          if (!currentUser) throw new Error("Authentication stale. Please sign in again.");
+
           await fetch('/api/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              userId: auth.currentUser.uid,
+              userId: currentUser.uid,
               type: 'deposit',
               amount: parseInt(amount),
               planName: 'Wallet Deposit',
