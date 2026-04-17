@@ -16,8 +16,8 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
     setError('');
     const withdrawAmount = parseInt(amount);
     
-    if (!withdrawAmount || withdrawAmount < 100) {
-      setError("Minimum withdrawal is GH₵ 100");
+    if (!withdrawAmount || withdrawAmount < 50) {
+      setError("Minimum withdrawal is GH₵ 50");
       return;
     }
 
@@ -103,7 +103,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-1">Amount (GH₵)</label>
                 <input
                   type="number"
-                  placeholder="Min. 100"
+                  placeholder="Min. 50"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-xl font-black focus:ring-2 focus:ring-red-500 transition-all outline-none"

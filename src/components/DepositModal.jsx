@@ -22,8 +22,8 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
   const initializePayment = usePaystackPayment(config);
 
   const handleDeposit = () => {
-    if (!amount || parseInt(amount) < 100) {
-      showNotification("Minimum deposit is GH₵ 100", "error");
+    if (!amount || parseInt(amount) < 50) {
+      showNotification("Minimum deposit is GH₵ 50", "error");
       return;
     }
     
@@ -89,7 +89,7 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-1">Amount (GH₵)</label>
                 <input
                   type="number"
-                  placeholder="Min. 100"
+                  placeholder="Min. 50"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-xl font-black focus:ring-2 focus:ring-blue-500 transition-all outline-none"

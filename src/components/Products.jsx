@@ -6,8 +6,8 @@ export default function Products({ onInvest }) {
     {
       id: 'starter',
       name: 'Starter Plan',
-      min: 'GH₵ 100',
-      returns: 'GH₵ 25',
+      min: 'GH₵ 50',
+      returns: 'GH₵ 12.5',
       assets: 'Agricultural Commodities',
       image: 'https://picsum.photos/seed/agriculture/600/400',
       popular: true,

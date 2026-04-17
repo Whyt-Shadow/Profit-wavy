@@ -53,6 +53,7 @@ export default function Auth() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setError(null);
 
     if (!isLogin) {
@@ -131,6 +132,7 @@ export default function Auth() {
   };
 
   const handleGoogleAuth = async () => {
+    if (loading) return;
     setError(null);
     setLoading(true);
     try {
@@ -159,7 +161,16 @@ export default function Auth() {
       console.error('Google Auth error:', err);
       let msg = err && typeof err === 'object' ? err.message : String(err);
       
-      if (msg && msg.includes('auth/account-exists-with-different-credential')) {
+      // Specifically handle common non-fatal or internal errors
+      if (msg && msg.includes('auth/popup-closed-by-user')) {
+        // User closed the popup, this is not a fatal error we need to display aggressively
+        setLoading(false);
+        return;
+      }
+
+      if (msg && msg.includes('auth/internal-error') || msg.includes('INTERNAL ASSERTION FAILED')) {
+        msg = 'A connection error occurred. Please try again or check your network.';
+      } else if (msg && msg.includes('auth/account-exists-with-different-credential')) {
         msg = 'An account already exists with this email. Please log in with your primary method.';
         setTimeout(() => {
           setIsLogin(true);
