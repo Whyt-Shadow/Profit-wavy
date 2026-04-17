@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 import { User, Transaction } from "./src/models/index.js";
 
 dotenv.config();
@@ -32,6 +33,55 @@ async function startServer() {
       next();
     };
     app.use(checkMongoConnection);
+
+    // Nodemailer configuration
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: process.env.SMTP_PORT || 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    const sendWithdrawalEmail = async (user, amount, details) => {
+      const adminEmail = process.env.ADMIN_EMAIL || 'armcaleb1@gmail.com';
+      const mailOptions = {
+        from: `"Profit Wavy Sentinel" <${process.env.SMTP_USER}>`,
+        to: `${adminEmail}, ${user.email}`,
+        subject: `[WITHDRAWAL PENDING] GH₵ ${amount} Request Received`,
+        text: `Withdrawal Request Notification\n\nUser: ${user.displayName || user.email}\nAmount: GH₵ ${amount}\nMethod: ${details.method}\nDetails: ${details.details}\n\nThis withdrawal is currently PENDING manual approval from the institutional board. No action is required from the user at this time.`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+            <h2 style="color: #2563eb; text-transform: uppercase;">Withdrawal Protocol Initialized</h2>
+            <p>A manual withdrawal request has been registered on the institutional ledger.</p>
+            <hr />
+            <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
+              <p><strong>User:</strong> ${user.displayName || user.email}</p>
+              <p><strong>Amount:</strong> <span style="color: #10b981; font-weight: bold;">GH₵ ${amount}</span></p>
+              <p><strong>Method:</strong> ${details.method.toUpperCase()}</p>
+              <p><strong>Destination:</strong> ${details.details}</p>
+            </div>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+              Status: <strong>PENDING</strong><br />
+              Requirement: Manual verification by high-frequency terminal operators.
+            </p>
+          </div>
+        `
+      };
+
+      try {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+          console.warn("[MAIL-GATE] SMTP credentials missing. Notification logged but not sent.");
+          return;
+        }
+        await transporter.sendMail(mailOptions);
+        console.log(`[MAIL-GATE] Withdrawal notification sent for user ${user.uid}`);
+      } catch (error) {
+        console.error("[MAIL-GATE] Failed to send email:", error.message);
+      }
+    };
 
     // Request logging middleware
     app.use((req, res, next) => {
@@ -174,6 +224,26 @@ async function startServer() {
     } catch (error) {
       console.error("[SYNC-ERROR]", error);
       res.status(500).json({ error: "System failed to sync user data" });
+    }
+  });
+
+  // Update User Profile
+  app.put("/api/users/:uid", async (req, res) => {
+    const { uid } = req.params;
+    const { phone, displayName } = req.body;
+
+    try {
+      const user = await User.findOne({ uid });
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      if (phone !== undefined) user.phone = phone;
+      if (displayName !== undefined) user.displayName = displayName;
+
+      await user.save();
+      res.json(user);
+    } catch (error) {
+      console.error("[UPDATE-USER-ERROR]", error);
+      res.status(500).json({ error: "Failed to update user profile" });
     }
   });
 
@@ -388,14 +458,10 @@ async function startServer() {
         }
       }
 
-      // If it's a real withdrawal, try Paystack first
-      let payoutStatus = null;
+      // NO AUTOMATIC PAYOUTS: Manual processing required per institutional protocol
       if (type === 'withdrawal') {
-        try {
-          payoutStatus = await initiatePaystackPayout({ amount, metadata, userId });
-        } catch (err) {
-          return res.status(500).json({ error: `Payout failed: ${err.message}` });
-        }
+        console.log(`[WITHDRAWAL-REQUEST] User ${userId} requested manual payout of GH₵ ${amount}`);
+        await sendWithdrawalEmail(user, amount, metadata);
       }
 
       const transaction = await Transaction.create({ 
@@ -403,7 +469,7 @@ async function startServer() {
         type, 
         amount, 
         planName,
-        status: payoutStatus?.status === 'success' ? 'completed' : (type === 'withdrawal' ? 'pending' : 'completed')
+        status: type === 'withdrawal' ? 'pending' : 'completed'
       });
       
       // Update user stats
@@ -487,18 +553,18 @@ async function startServer() {
         } else if (type === 'deposit') {
           user.balance += amount;
 
-          // Handle Referral Bonus (5% of deposit to the referrer)
+          // Handle Institutional Referral Bonus (2% of deposit to the referrer)
           if (user.referredBy) {
             const referrer = await User.findOne({ referralCode: user.referredBy });
             if (referrer) {
-              const refBonus = amount * 0.05; // 5%
+              const refBonus = Math.floor((amount * 0.02) * 100) / 100; // 2% with precision
               referrer.balance += refBonus;
               await referrer.save();
               await Transaction.create({
                 userId: referrer.uid,
                 type: 'referral',
                 amount: refBonus,
-                planName: `Referral Bonus from ${user.displayName || user.email}`
+                planName: `Referral Incentive (2%) from ${user.displayName || user.email}`
               });
             }
           }

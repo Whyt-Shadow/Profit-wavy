@@ -14,6 +14,8 @@ export default function Me({ user: firebaseUser }) {
   const [loading, setLoading] = useState(true);
   const [showTerms, setShowTerms] = useState(false);
   const [termsTitle, setTermsTitle] = useState('Terms and Conditions');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ displayName: '', phone: '' });
   const { showNotification } = useNotification();
 
   // Sync sub-view with browser history
@@ -58,11 +60,35 @@ export default function Me({ user: firebaseUser }) {
       if (res.ok) {
         const data = await res.json();
         setUserData(data);
+        setEditData({ 
+          displayName: data.displayName || firebaseUser.displayName || '', 
+          phone: data.phone || '' 
+        });
       }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    try {
+      const res = await fetch(`/api/users/${firebaseUser.uid}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
+      if (res.ok) {
+        showNotification("Institutional profile updated successfully", "success");
+        setIsEditing(false);
+        await fetchUserData();
+      } else {
+        showNotification("Failed to update profile", "error");
+      }
+    } catch (error) {
+      console.error("Profile update error:", error);
+      showNotification("Network error updating profile", "error");
     }
   };
 
@@ -133,20 +159,56 @@ export default function Me({ user: firebaseUser }) {
                   🎁 Claim GH₵ 5 Welcome Bonus
                 </button>
               )}
-              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                <div className="flex items-center gap-3">
-                  <UserIcon className="w-5 h-5 text-gray-500" />
-                  <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Display Name</span>
+              
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <UserIcon className="w-5 h-5 text-gray-500" />
+                    <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Display Name</span>
+                  </div>
+                  {isEditing ? (
+                    <input 
+                      type="text"
+                      value={editData.displayName}
+                      onChange={(e) => setEditData({ ...editData, displayName: e.target.value })}
+                      className="text-xs font-black text-white bg-black/40 border border-blue-500/30 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
+                    />
+                  ) : (
+                    <span className="text-xs font-black text-white">{userData?.displayName || firebaseUser.displayName || 'Not Set'}</span>
+                  )}
                 </div>
-                <span className="text-xs font-black text-white">{firebaseUser.displayName || 'Not Set'}</span>
               </div>
-              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-gray-500" />
-                  <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Email Address</span>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-5 h-5 text-gray-500" />
+                    <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Email Address</span>
+                  </div>
+                  <span className="text-xs font-black text-gray-500">{firebaseUser.email}</span>
                 </div>
-                <span className="text-xs font-black text-white">{firebaseUser.email}</span>
               </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <Smartphone className="w-5 h-5 text-gray-500" />
+                    <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Phone Number</span>
+                  </div>
+                  {isEditing ? (
+                    <input 
+                      type="text"
+                      placeholder="+233..."
+                      value={editData.phone}
+                      onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                      className="text-xs font-black text-white bg-black/40 border border-blue-500/30 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-500"
+                    />
+                  ) : (
+                    <span className="text-xs font-black text-white">{userData?.phone || 'Not Set'}</span>
+                  )}
+                </div>
+              </div>
+
               <div className="flex flex-col gap-3 p-4 bg-blue-600/5 rounded-2xl border border-blue-500/10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -176,9 +238,30 @@ export default function Me({ user: firebaseUser }) {
                 </button>
               </div>
             </div>
-            <button className="w-full py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-700 transition-all">
-              Update Profile
-            </button>
+
+            {isEditing ? (
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 py-4 bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleUpdateProfile}
+                  className="flex-1 py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20"
+                >
+                  Save Changes
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsEditing(true)}
+                className="w-full py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl hover:bg-blue-700 transition-all"
+              >
+                Update Profile
+              </button>
+            )}
           </div>
           <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4">
             <h3 className="text-lg font-black font-display uppercase italic text-gray-500">Preferences</h3>

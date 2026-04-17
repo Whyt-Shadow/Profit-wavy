@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Smartphone, CreditCard, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
 import { auth } from '../lib/firebase';
 
+import { useNotification } from './NotificationProvider';
+
 export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSuccess, referralCount, hasCompletedTerm }) {
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('momo');
@@ -11,6 +13,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
   const [network, setNetwork] = useState('MTN');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { showNotification } = useNotification();
 
   const referralLock = hasCompletedTerm && referralCount < 5;
 
@@ -61,6 +64,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
       });
 
       if (response.ok) {
+        showNotification("Withdrawal Protocol Initialized. A confirmation email has been sent, and our team will process your request manually.", "success");
         onWithdrawSuccess();
         onClose();
       } else {
