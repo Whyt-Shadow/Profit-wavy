@@ -7,7 +7,9 @@ export default function Products({ onInvest }) {
       id: 'starter',
       name: 'Starter Plan',
       min: 'GH₵ 50',
-      returns: 'GH₵ 12.5',
+      returns: 'GH₵ 1.67', // (50 * 1.0) / 30 = 1.67 approx for 30 days or keep it as daily profit?
+      daily: 'GH₵ 1.67',
+      duration: '30 Days',
       assets: 'Agricultural Commodities',
       image: 'https://picsum.photos/seed/agriculture/600/400',
       popular: true,
@@ -15,10 +17,25 @@ export default function Products({ onInvest }) {
       icon: Zap
     },
     {
+      id: 'bronze',
+      name: 'Bronze Plan',
+      min: 'GH₵ 200',
+      returns: 'GH₵ 400',
+      daily: 'GH₵ 13.33',
+      duration: '30 Days',
+      assets: 'Microfinance Bond',
+      image: 'https://picsum.photos/seed/finance/600/400',
+      popular: false,
+      color: 'from-slate-700 to-slate-800',
+      icon: ShieldCheck
+    },
+    {
       id: 'silver',
       name: 'Silver Plan',
       min: 'GH₵ 300',
-      returns: 'GH₵ 75',
+      returns: 'GH₵ 600',
+      daily: 'GH₵ 20.00',
+      duration: '30 Days',
       assets: 'Fintech Emerging Markets',
       image: 'https://picsum.photos/seed/fintech/600/400',
       popular: false,
@@ -29,7 +46,9 @@ export default function Products({ onInvest }) {
       id: 'gold',
       name: 'Gold Plan',
       min: 'GH₵ 500',
-      returns: 'GH₵ 125',
+      returns: 'GH₵ 1000',
+      daily: 'GH₵ 33.33',
+      duration: '30 Days',
       assets: 'Sustainable Energy',
       image: 'https://picsum.photos/seed/energy/600/400',
       popular: false,
@@ -40,7 +59,9 @@ export default function Products({ onInvest }) {
       id: 'platinum',
       name: 'Platinum Plan',
       min: 'GH₵ 800',
-      returns: 'GH₵ 200',
+      returns: 'GH₵ 1600',
+      daily: 'GH₵ 53.33',
+      duration: '30 Days',
       assets: 'AI & Cloud Computing',
       image: 'https://picsum.photos/seed/ai-tech/600/400',
       popular: false,
@@ -51,7 +72,9 @@ export default function Products({ onInvest }) {
       id: 'diamond',
       name: 'Diamond Plan',
       min: 'GH₵ 1000',
-      returns: 'GH₵ 250',
+      returns: 'GH₵ 2000',
+      daily: 'GH₵ 66.67',
+      duration: '30 Days',
       assets: 'Real Estate Development',
       image: 'https://picsum.photos/seed/realestate/600/400',
       popular: false,
@@ -62,7 +85,9 @@ export default function Products({ onInvest }) {
       id: 'executive',
       name: 'Executive Plan',
       min: 'GH₵ 1500',
-      returns: 'GH₵ 375',
+      returns: 'GH₵ 3000',
+      daily: 'GH₵ 100.00',
+      duration: '30 Days',
       assets: 'Luxury Hospitality',
       image: 'https://picsum.photos/seed/luxury-hotel/600/400',
       popular: false,
@@ -73,7 +98,9 @@ export default function Products({ onInvest }) {
       id: 'premium',
       name: 'Premium Plan',
       min: 'GH₵ 2000',
-      returns: 'GH₵ 500',
+      returns: 'GH₵ 4000',
+      daily: 'GH₵ 133.33',
+      duration: '30 Days',
       assets: 'Global Blue Chips',
       image: 'https://picsum.photos/seed/bluechip/600/400',
       popular: false,
@@ -84,7 +111,9 @@ export default function Products({ onInvest }) {
       id: 'elite',
       name: 'Elite Plan',
       min: 'GH₵ 3000',
-      returns: 'GH₵ 750',
+      returns: 'GH₵ 6000',
+      daily: 'GH₵ 200.00',
+      duration: '30 Days',
       assets: 'Venture Capital',
       image: 'https://picsum.photos/seed/venture/600/400',
       popular: false,
@@ -95,7 +124,9 @@ export default function Products({ onInvest }) {
       id: 'legacy',
       name: 'Legacy Plan',
       min: 'GH₵ 5000',
-      returns: 'GH₵ 1250',
+      returns: 'GH₵ 10000',
+      daily: 'GH₵ 333.33',
+      duration: '30 Days',
       assets: 'Multi-generational Wealth Fund',
       image: 'https://picsum.photos/seed/wealth/600/400',
       popular: false,
@@ -190,7 +221,13 @@ export default function Products({ onInvest }) {
 
                 <div className="w-full space-y-4">
                   <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Daily ROI</span>
+                    <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest italic">Daily Allocation</span>
+                    <span className="text-white font-black font-display text-xl">{plan.daily}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                      {plan.duration ? 'Total Payout' : 'Daily ROI'}
+                    </span>
                     <span className="text-green-500 font-black font-display text-xl">{plan.returns}</span>
                   </div>
                   <div className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5">

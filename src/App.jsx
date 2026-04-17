@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [dbUser, setDbUser] = useState(null);
   const [isSynced, setIsSynced] = useState(false);
   const [syncError, setSyncError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -107,6 +108,7 @@ export default function App() {
             try {
               const syncedUser = JSON.parse(syncText);
               console.log("User synced successfully with MongoDB:", syncedUser);
+              setDbUser(syncedUser);
               // Dispatch event to notify dashboard
               window.dispatchEvent(new CustomEvent('user-synced'));
               // Clear referral code after successful sync

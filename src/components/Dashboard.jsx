@@ -34,6 +34,7 @@ export default function Dashboard({ user, setActiveTab }) {
   const [invested, setInvested] = useState(0);
   const [availableCash, setAvailableCash] = useState(0);
   const [activeReturns, setActiveReturns] = useState(0);
+  const [userData, setUserData] = useState(null);
   const [recentReturns, setRecentReturns] = useState([]);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -101,6 +102,7 @@ export default function Dashboard({ user, setActiveTab }) {
           setInvested(totalInvested);
           setAvailableCash(balance);
           setActiveReturns(totalReturns);
+          setUserData(userData);
         } catch (jsonErr) {
           console.error("DASHBOARD: User data JSON parse failed. Response text:", userText.substring(0, 500));
         }
@@ -194,6 +196,8 @@ export default function Dashboard({ user, setActiveTab }) {
         isOpen={isWithdrawOpen} 
         onClose={() => setIsWithdrawOpen(false)} 
         balance={availableCash}
+        referralCount={userData?.referralCount || 0}
+        hasCompletedTerm={userData?.hasCompletedTerm || false}
         onWithdrawSuccess={fetchData} 
       />
 

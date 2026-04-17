@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Smartphone, CreditCard, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
 import { auth } from '../lib/firebase';
 
-export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSuccess }) {
+export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSuccess, referralCount, hasCompletedTerm }) {
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('momo');
   const [details, setDetails] = useState('');
@@ -12,9 +12,16 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const referralLock = hasCompletedTerm && referralCount < 5;
+
   const handleWithdraw = async () => {
     setError('');
     const withdrawAmount = parseInt(amount);
+    
+    if (referralLock) {
+      setError("Institutional Protocol: You are required to refer 5 active members to unlock withdrawals after completing an investment term.");
+      return;
+    }
     
     if (!withdrawAmount || withdrawAmount < 50) {
       setError("Minimum withdrawal is GH₵ 50");
@@ -92,6 +99,19 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
                 <X className="w-6 h-6 text-gray-500" />
               </button>
             </div>
+
+            {referralLock && (
+              <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex gap-4">
+                <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Referral Link Required</p>
+                  <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+                    Institutional security mandates 5 active referrals after completing your first 30-day term. 
+                    Current progress: <span className="text-amber-500 font-bold">{referralCount}/5</span> verified referrals.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-6 relative z-10">
               <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex justify-between items-center">

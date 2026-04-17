@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
   balance: { type: Number, default: 5 },
   totalInvested: { type: Number, default: 0 },
   totalReturns: { type: Number, default: 0 },
+  referralCount: { type: Number, default: 0 },
+  hasCompletedTerm: { type: Boolean, default: false },
   referralCode: { type: String, unique: true },
   referredBy: { type: String }, // Stores the referralCode of the referrer
   paymentMethods: [{

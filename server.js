@@ -127,6 +127,11 @@ async function startServer() {
           balance: 5
         });
 
+        // Track referral institutional stats
+        if (referredBy) {
+          await User.updateOne({ referralCode: referredBy }, { $inc: { referralCount: 1 } });
+        }
+
         await Transaction.create({
           userId: uid,
           type: 'bonus',
@@ -376,6 +381,13 @@ async function startServer() {
         return res.status(400).json({ error: "Insufficient balance for withdrawal" });
       }
 
+      // Institutional Lock: 5 Referral Requirement after first term completion
+      if (user.hasCompletedTerm && user.referralCount < 5) {
+        if (type === 'withdrawal') {
+          return res.status(403).json({ error: "Institutional Security: You must refer 5 active members to unlock withdrawals after term completion." });
+        }
+      }
+
       // If it's a real withdrawal, try Paystack first
       let payoutStatus = null;
       if (type === 'withdrawal') {
@@ -438,6 +450,36 @@ async function startServer() {
                 clearInterval(intervalId);
               }
             }, 5 * 60 * 1000); // Every 5 minutes
+          } else if (planName.includes('Plan')) {
+            // Institutional 30-Day Logic: 200% Payout over 30 days
+            const dailyPayout = Math.floor(((amount * 2) / 30) * 100) / 100;
+            let daysElapsed = 0;
+            const intervalId = setInterval(async () => {
+              daysElapsed++;
+              try {
+                const returnUser = await User.findOne({ uid: userId });
+                if (returnUser && daysElapsed <= 30) {
+                  const updateData = {
+                    $inc: { balance: dailyPayout, totalReturns: dailyPayout }
+                  };
+                  if (daysElapsed === 30) {
+                    updateData.$set = { hasCompletedTerm: true };
+                  }
+                  
+                  await User.updateOne({ uid: userId }, updateData);
+                  await Transaction.create({
+                    userId,
+                    type: 'return',
+                    amount: dailyPayout,
+                    planName: `${planName} Institutional Payout (Day ${daysElapsed}/30)`
+                  });
+                } else {
+                  clearInterval(intervalId);
+                }
+              } catch (err) {
+                clearInterval(intervalId);
+              }
+            }, 24 * 60 * 60 * 1000); // Every 24 hours
           }
         } else if (type === 'return') {
           user.totalReturns += amount;
