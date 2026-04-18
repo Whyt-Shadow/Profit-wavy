@@ -223,7 +223,7 @@ export default function App() {
       case 'dashboard':
         return <Dashboard user={user} setActiveTab={handleTabChange} />;
       case 'products':
-        return <Products onInvest={(plan) => {
+        return <Products dbUser={dbUser} onInvest={(plan) => {
           console.log("NAV: Investing in plan:", plan?.name);
           window.scrollTo({ top: 0, behavior: 'instant' });
           setSelectedPlan(plan);

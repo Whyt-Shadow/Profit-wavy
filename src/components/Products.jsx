@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { Check, TrendingUp, Zap, Star, ShieldCheck, ArrowRight } from 'lucide-react';
 
-export default function Products({ onInvest }) {
+export default function Products({ onInvest, dbUser }) {
   const plans = [
     {
       id: 'starter',
@@ -179,28 +179,37 @@ export default function Products({ onInvest }) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 w-full">
-          {plans.map((plan, i) => (
-            <motion.div
-              key={plan.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              whileHover={{ y: -10 }}
-              className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[48px] overflow-hidden relative flex flex-col group shadow-2xl shadow-black/50"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              {/* Header */}
-              <div className={`bg-gradient-to-br ${plan.color} p-10 text-center relative overflow-hidden`}>
-                <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-                <plan.icon className="w-12 h-12 text-white/20 absolute -top-2 -right-2 rotate-12 group-hover:scale-150 transition-transform duration-700" />
-                <h3 className="text-white text-3xl font-black font-display uppercase italic relative z-10">{plan.name}</h3>
-                {plan.popular && (
-                  <div className="absolute top-4 right-4 bg-orange-500 text-white text-[10px] font-black uppercase px-4 py-1.5 rounded-full shadow-xl z-20 animate-pulse">
-                    Popular
-                  </div>
-                )}
-              </div>
+          {plans.map((plan, i) => {
+            const purchaseCount = dbUser?.planPurchases?.[plan.name] || 0;
+            const isMaxed = purchaseCount >= 2;
+
+            return (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                whileHover={!isMaxed ? { y: -10 } : {}}
+                className={`bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[48px] overflow-hidden relative flex flex-col group shadow-2xl shadow-black/50 ${isMaxed ? 'opacity-60 grayscale-[0.5]' : ''}`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Header */}
+                <div className={`bg-gradient-to-br ${plan.color} p-10 text-center relative overflow-hidden`}>
+                  <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+                  <plan.icon className="w-12 h-12 text-white/20 absolute -top-2 -right-2 rotate-12 group-hover:scale-150 transition-transform duration-700" />
+                  <h3 className="text-white text-3xl font-black font-display uppercase italic relative z-10">{plan.name}</h3>
+                  {plan.popular && !isMaxed && (
+                    <div className="absolute top-4 right-4 bg-orange-500 text-white text-[10px] font-black uppercase px-4 py-1.5 rounded-full shadow-xl z-20 animate-pulse">
+                      Popular
+                    </div>
+                  )}
+                  {isMaxed && (
+                    <div className="absolute top-4 right-4 bg-red-600 text-white text-[10px] font-black uppercase px-4 py-1.5 rounded-full shadow-xl z-20">
+                      Limit Reached
+                    </div>
+                  )}
+                </div>
 
               {/* Body */}
               <div className="p-10 flex flex-col items-center space-y-8 flex-1 relative z-10">
@@ -253,17 +262,24 @@ export default function Products({ onInvest }) {
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (isMaxed) return;
                     console.log("CLICK: Deploying capital for:", plan.name);
                     onInvest(plan);
                   }}
-                  className="w-full mt-auto bg-white text-black font-black py-5 rounded-[24px] text-[10px] uppercase tracking-[0.3em] hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-white/5 active:scale-[0.95] flex items-center justify-center gap-3 group/btn cursor-pointer relative z-50 pointer-events-auto"
+                  disabled={isMaxed}
+                  className={`w-full mt-auto font-black py-5 rounded-[24px] text-[10px] uppercase tracking-[0.3em] transition-all shadow-xl active:scale-[0.95] flex items-center justify-center gap-3 group/btn cursor-pointer relative z-50 pointer-events-auto ${
+                    isMaxed 
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5' 
+                    : 'bg-white text-black hover:bg-blue-600 hover:text-white shadow-white/5'
+                  }`}
                 >
-                  Deploy Capital
-                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />
+                  {isMaxed ? 'Subscription Limit Met' : 'Deploy Capital'}
+                  {!isMaxed && <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />}
                 </button>
               </div>
             </motion.div>
-          ))}
+          );
+        })}
         </div>
       </div>
     </div>

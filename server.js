@@ -514,8 +514,18 @@ async function startServer() {
       
       // Update user stats
       if (type === 'investment') {
+          // Institutional Purchase Limit: Max 2 purchases per plan
+          const currentCount = user.planPurchases?.get(planName) || 0;
+          if (currentCount >= 2) {
+            return res.status(403).json({ error: `Institutional Limit: You have reached the maximum purchase limit (2) for the ${planName}.` });
+          }
+
           user.totalInvested += amount;
           user.balance -= amount;
+
+          // Update plan purchase count
+          if (!user.planPurchases) user.planPurchases = new Map();
+          user.planPurchases.set(planName, currentCount + 1);
 
           // Institutional Level Escalation
           const planLevels = {

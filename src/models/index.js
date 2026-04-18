@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   referralCode: { type: String, unique: true },
   referredBy: { type: String }, // Stores the referralCode of the referrer
   level: { type: Number, default: 0 },
+  planPurchases: { type: Map, of: Number, default: {} },
   paymentMethods: [{
     type: { type: String, enum: ['momo', 'card'] },
     details: { type: String },
