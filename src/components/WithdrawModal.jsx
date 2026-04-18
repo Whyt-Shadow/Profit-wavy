@@ -13,11 +13,13 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
   const [network, setNetwork] = useState('MTN');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasAttempted, setHasAttempted] = useState(false);
   const { showNotification } = useNotification();
 
   const referralLock = referralCount < 5;
 
   const handleWithdraw = async () => {
+    setHasAttempted(true);
     setError('');
     const withdrawAmount = parseInt(amount);
     
@@ -104,7 +106,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
               </button>
             </div>
 
-            {referralLock && (
+            {hasAttempted && referralLock && (
               <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex gap-4">
                 <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" />
                 <div className="space-y-1">
