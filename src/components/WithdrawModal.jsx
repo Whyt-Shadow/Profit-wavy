@@ -15,14 +15,14 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
   const [error, setError] = useState('');
   const { showNotification } = useNotification();
 
-  const referralLock = hasCompletedTerm && referralCount < 5;
+  const referralLock = referralCount < 5;
 
   const handleWithdraw = async () => {
     setError('');
     const withdrawAmount = parseInt(amount);
     
     if (referralLock) {
-      setError("Institutional Protocol: You are required to refer 5 active members to unlock withdrawals after completing an investment term.");
+      setError("Institutional Protocol: You are required to refer 5 active members to unlock withdrawals.");
       return;
     }
     
@@ -110,7 +110,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Referral Link Required</p>
                   <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
-                    Institutional security mandates 5 active referrals after completing your first 30-day term. 
+                    Institutional security mandates 5 active referrals to unlock funds. 
                     Current progress: <span className="text-amber-500 font-bold">{referralCount}/5</span> verified referrals.
                   </p>
                 </div>

@@ -59,25 +59,54 @@ async function startServer() {
     const sendWithdrawalEmail = async (user, amount, details) => {
       const adminEmail = process.env.ADMIN_EMAIL || 'armcaleb1@gmail.com';
       const mailOptions = {
-        from: `"Profit Wavy Sentinel" <${process.env.SMTP_USER}>`,
+        from: `"Profit Wavy Institutional" <${process.env.SMTP_USER}>`,
         to: `${adminEmail}, ${user.email}`,
-        subject: `[WITHDRAWAL PENDING] GH₵ ${amount} Request Received`,
-        text: `Withdrawal Request Notification\n\nUser: ${user.displayName || user.email}\nAmount: GH₵ ${amount}\nMethod: ${details.method}\nDetails: ${details.details}\n\nThis withdrawal is currently PENDING manual approval from the institutional board. No action is required from the user at this time.`,
+        subject: `[PROTOCOL-W] GH₵ ${amount} Withdrawal Pending`,
+        text: `Withdrawal Request Notification\n\nUser: ${user.displayName || user.email}\nUser UID: ${user.uid}\nAmount: GH₵ ${amount}\nMethod: ${details.method}\nDestination: ${details.details}\n\nProtocol Status: PENDING\nThis withdrawal requires manual terminal processing by the administrator.`,
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #2563eb; text-transform: uppercase;">Withdrawal Protocol Initialized</h2>
-            <p>A manual withdrawal request has been registered on the institutional ledger.</p>
-            <hr />
-            <div style="background: #f9fafb; padding: 15px; border-radius: 8px;">
-              <p><strong>User:</strong> ${user.displayName || user.email}</p>
-              <p><strong>Amount:</strong> <span style="color: #10b981; font-weight: bold;">GH₵ ${amount}</span></p>
-              <p><strong>Method:</strong> ${details.method.toUpperCase()}</p>
-              <p><strong>Destination:</strong> ${details.details}</p>
+          <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #1a1a1a; border-radius: 24px; background-color: #050505; color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #2563eb; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; font-style: italic; margin: 0;">Profit <span style="color: #4b5563;">Wavy.</span></h1>
+              <p style="font-size: 10px; color: #4b5563; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3em; margin-top: 5px;">Institutional Terminal</p>
             </div>
-            <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
-              Status: <strong>PENDING</strong><br />
-              Requirement: Manual verification by high-frequency terminal operators.
-            </p>
+            
+            <div style="border-left: 4px solid #2563eb; padding-left: 20px; margin-bottom: 30px;">
+              <h2 style="font-size: 18px; font-weight: 900; text-transform: uppercase; margin: 0;">Withdrawal Request Signal</h2>
+              <p style="font-size: 12px; color: #9ca3af; margin: 5px 0 0 0;">Transaction Status: <span style="color: #f59e0b;">PENDING VERIFICATION</span></p>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 10px 0; color: #9ca3af; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Investor</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 700;">${user.displayName || user.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; color: #9ca3af; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Amount</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 900; color: #2563eb; font-size: 18px;">GH₵ ${amount}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; color: #9ca3af; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Method</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 700;">${details.method.toUpperCase()} (${details.network || 'TERM'})</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; color: #9ca3af; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Target Destination</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 700;">${details.details}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="margin-top: 30px; padding: 20px; background: rgba(245, 158, 11, 0.05); border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2);">
+              <p style="font-size: 11px; color: #f59e0b; font-weight: 700; margin: 0; line-height: 1.5; text-transform: uppercase; text-align: center;">
+                Manual authorization required. Funds will be dispersed upon high-frequency verification by the institutional board.
+              </p>
+            </div>
+            
+            <div style="margin-top: 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); pt: 20px;">
+              <p style="font-size: 9px; color: #4b5563; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em;">
+                Profit Wavy Securities • Institutional Clearing House • v2.4.0
+              </p>
+            </div>
           </div>
         `
       };
@@ -462,10 +491,10 @@ async function startServer() {
         return res.status(400).json({ error: "Insufficient balance for withdrawal" });
       }
 
-      // Institutional Lock: 5 Referral Requirement after first term completion
-      if (user.hasCompletedTerm && user.referralCount < 5) {
+      // Institutional Lock: 5 Referral Requirement before any withdrawal
+      if (user.referralCount < 5) {
         if (type === 'withdrawal') {
-          return res.status(403).json({ error: "Institutional Security: You must refer 5 active members to unlock withdrawals after term completion." });
+          return res.status(403).json({ error: "Institutional Security: You must refer 5 active members to unlock withdrawals." });
         }
       }
 
@@ -528,18 +557,19 @@ async function startServer() {
               }
             }, 5 * 60 * 1000); // Every 5 minutes
           } else if (planName.includes('Plan')) {
-            // Institutional 30-Day Logic: 200% Payout over 30 days
-            const dailyPayout = Math.floor(((amount * 2) / 30) * 100) / 100;
+            // Institutional 15-Day Logic: 200% Payout over 15 days
+            const totalDays = 15;
+            const dailyPayout = Math.floor(((amount * 2) / totalDays) * 100) / 100;
             let daysElapsed = 0;
             const intervalId = setInterval(async () => {
               daysElapsed++;
               try {
                 const returnUser = await User.findOne({ uid: userId });
-                if (returnUser && daysElapsed <= 30) {
+                if (returnUser && daysElapsed <= totalDays) {
                   const updateData = {
                     $inc: { balance: dailyPayout, totalReturns: dailyPayout }
                   };
-                  if (daysElapsed === 30) {
+                  if (daysElapsed === totalDays) {
                     updateData.$set = { hasCompletedTerm: true };
                   }
                   
@@ -548,7 +578,7 @@ async function startServer() {
                     userId,
                     type: 'return',
                     amount: dailyPayout,
-                    planName: `${planName} Institutional Payout (Day ${daysElapsed}/30)`
+                    planName: `${planName} Institutional Payout (Day ${daysElapsed}/${totalDays})`
                   });
                 } else {
                   clearInterval(intervalId);
