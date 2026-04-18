@@ -517,6 +517,20 @@ async function startServer() {
           user.totalInvested += amount;
           user.balance -= amount;
 
+          // Institutional Level Escalation
+          const planLevels = {
+            'Starter Plan': 1, 'Bronze Plan': 1, 'Silver Plan': 1,
+            'Gold Plan': 2, 'Platinum Plan': 2,
+            'Diamond Plan': 3, 'Executive Plan': 3, 'Premium Plan': 3,
+            'Elite Plan': 4,
+            'Legacy Plan': 5
+          };
+          const newLevel = planLevels[planName] || 0;
+          if (newLevel > (user.level || 0)) {
+            console.log(`[LEVEL-UP] User ${userId} escalated to Level ${newLevel} via ${planName}`);
+            user.level = newLevel;
+          }
+
           // Automated recurring return for Flash Plan (30% every 5 minutes)
           if (planName === 'Flash Plan') {
             const profitRate = 0.30; // 30% profit

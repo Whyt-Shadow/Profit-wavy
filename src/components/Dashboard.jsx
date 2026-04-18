@@ -313,6 +313,10 @@ export default function Dashboard({ user, setActiveTab }) {
                     <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
                     <span className="text-[6px] font-black text-green-400 uppercase tracking-widest">Live</span>
                   </div>
+                  <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
+                    <Zap className="w-2.5 h-2.5 text-blue-300" />
+                    <span className="text-[6px] font-black text-blue-100 uppercase tracking-widest">LVL {userData?.level || 0}</span>
+                  </div>
                 </div>
                 <h2 className="text-4xl md:text-6xl font-black tracking-tighter font-display italic">{formatCurrency(totalBalance)}</h2>
               </div>

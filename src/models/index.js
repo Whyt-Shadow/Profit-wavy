@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   hasCompletedTerm: { type: Boolean, default: false },
   referralCode: { type: String, unique: true },
   referredBy: { type: String }, // Stores the referralCode of the referrer
+  level: { type: Number, default: 0 },
   paymentMethods: [{
     type: { type: String, enum: ['momo', 'card'] },
     details: { type: String },

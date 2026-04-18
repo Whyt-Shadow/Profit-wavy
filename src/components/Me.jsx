@@ -494,8 +494,14 @@ export default function Me({ user: firebaseUser }) {
                 
                 <div className="space-y-1 md:space-y-2">
                   <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase italic font-display">{firebaseUser.displayName || 'Investor'}</h2>
-                  <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 rounded-full">
-                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{firebaseUser.email}</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 rounded-full">
+                      <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{firebaseUser.email}</span>
+                    </div>
+                    <div className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-500/20 px-3 py-1 rounded-full">
+                      <Shield className="w-3 h-3 text-blue-500" />
+                      <span className="text-[8px] font-black uppercase tracking-widest text-blue-400">Institutional Level {userData?.level || 0}</span>
+                    </div>
                   </div>
                 </div>
 
