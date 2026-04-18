@@ -10,11 +10,14 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
 
+  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key_here';
+  const isDemoKey = publicKey === 'pk_test_your_public_key_here';
+
   const config = {
     reference: (new Date()).getTime().toString(),
-    email: auth.currentUser?.email || 'customer@example.com',
+    email: auth.currentUser?.email || 'investor@profitwavy.terminal',
     amount: (parseInt(amount) || 0) * 100,
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key_here',
+    publicKey: publicKey,
     currency: 'GHS',
     channels: ['mobile_money', 'card'],
   };
@@ -22,6 +25,13 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
   const initializePayment = usePaystackPayment(config);
 
   const handleDeposit = () => {
+    if (isDemoKey) {
+      showNotification("Terminal Configuration Required: Add VITE_PAYSTACK_PUBLIC_KEY in Settings to enable deposits.", "error");
+      return;
+    }
+    
+    console.log(`[PAYSTACK-DEPOSIT] Requesting GH₵ ${amount}. Key: ${publicKey.substring(0, 10)}...`);
+    
     if (!amount || parseInt(amount) < 50) {
       showNotification("Minimum deposit is GH₵ 50", "error");
       return;
@@ -73,7 +83,7 @@ export default function DepositModal({ isOpen, onClose, onDepositSuccess }) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[32px] p-8 shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[32px] p-8 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16" />
             

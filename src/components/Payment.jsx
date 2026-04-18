@@ -11,11 +11,14 @@ export default function Payment({ plan, onBack, onSuccess }) {
   const amountInGhc = parseInt((plan?.min || '0').replace(/[^\d]/g, ''));
   const amountInPesewas = amountInGhc * 100;
 
+  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key_here';
+  const isDemoKey = publicKey === 'pk_test_your_public_key_here';
+
   const config = {
     reference: (new Date()).getTime().toString(),
-    email: auth.currentUser?.email || 'customer@example.com',
+    email: auth.currentUser?.email || 'investor@profitwavy.terminal',
     amount: amountInPesewas,
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_your_public_key_here',
+    publicKey: publicKey,
     currency: 'GHS',
     channels: ['mobile_money', 'card'],
   };
@@ -23,6 +26,12 @@ export default function Payment({ plan, onBack, onSuccess }) {
   const initializePayment = usePaystackPayment(config);
 
   const handlePayment = () => {
+    if (isDemoKey) {
+      alert("Institutional Connection Error: VITE_PAYSTACK_PUBLIC_KEY is not configured. Please enter your live or test Paystack public key in the Settings menu.");
+      return;
+    }
+    
+    console.log(`[PAYSTACK] Initializing GHS payment: ${amountInGhc}. Merchant Key: ${publicKey.substring(0, 10)}...`);
     setLoading(true);
     initializePayment({
       onSuccess: async (reference) => {
