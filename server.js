@@ -59,20 +59,20 @@ async function startServer() {
     const sendWithdrawalEmail = async (user, amount, details) => {
       const adminEmail = process.env.ADMIN_EMAIL || 'armcaleb1@gmail.com';
       const mailOptions = {
-        from: `"Profit Wavy Institutional" <${process.env.SMTP_USER}>`,
-        to: `${adminEmail}, ${user.email}`,
-        subject: `[PROTOCOL-W] GH₵ ${amount} Withdrawal Pending`,
-        text: `Withdrawal Request Notification\n\nUser: ${user.displayName || user.email}\nUser UID: ${user.uid}\nAmount: GH₵ ${amount}\nMethod: ${details.method}\nDestination: ${details.details}\n\nProtocol Status: PENDING\nThis withdrawal requires manual terminal processing by the administrator.`,
+        from: `"Profit Wavy Protocol" <${process.env.SMTP_USER}>`,
+        to: adminEmail, // Strictly to the admin for manual processing
+        subject: `[ACTION REQUIRED] Manual Withdrawal Prompt: GH₵ ${amount}`,
+        text: `URGENT WITHDRAWAL REQUEST\n\nA user has requested a withdrawal that requires manual processing.\n\nInvestor: ${user.displayName || user.email}\nUser UID: ${user.uid}\nAmount: GH₵ ${amount}\nMethod: ${details.method}\nDestination: ${details.details}\n\nPlease verify the user's standing and process the payment manually via your preferred institutional terminal.`,
         html: `
-          <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #1a1a1a; border-radius: 24px; background-color: #050505; color: #ffffff;">
+          <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #ff4444; border-radius: 24px; background-color: #050505; color: #ffffff;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #2563eb; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; font-style: italic; margin: 0;">Profit <span style="color: #4b5563;">Wavy.</span></h1>
-              <p style="font-size: 10px; color: #4b5563; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3em; margin-top: 5px;">Institutional Terminal</p>
+              <h1 style="color: #ff4444; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase; font-style: italic; margin: 0;">Manual <span style="color: #4b5563;">Withdrawal.</span></h1>
+              <p style="font-size: 10px; color: #4b5563; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3em; margin-top: 5px;">Action Required by Admin</p>
             </div>
             
-            <div style="border-left: 4px solid #2563eb; padding-left: 20px; margin-bottom: 30px;">
-              <h2 style="font-size: 18px; font-weight: 900; text-transform: uppercase; margin: 0;">Withdrawal Request Signal</h2>
-              <p style="font-size: 12px; color: #9ca3af; margin: 5px 0 0 0;">Transaction Status: <span style="color: #f59e0b;">PENDING VERIFICATION</span></p>
+            <div style="border-left: 4px solid #ff4444; padding-left: 20px; margin-bottom: 30px;">
+              <h2 style="font-size: 18px; font-weight: 900; text-transform: uppercase; margin: 0;">Institutional Payout Prompt</h2>
+              <p style="font-size: 12px; color: #9ca3af; margin: 5px 0 0 0;">Transaction Status: <span style="color: #ff4444;">WAITING FOR ADMIN</span></p>
             </div>
 
             <div style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
@@ -83,7 +83,7 @@ async function startServer() {
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; color: #9ca3af; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Amount</td>
-                  <td style="padding: 10px 0; text-align: right; font-weight: 900; color: #2563eb; font-size: 18px;">GH₵ ${amount}</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 900; color: #ff4444; font-size: 18px;">GH₵ ${amount}</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; color: #9ca3af; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Method</td>
@@ -96,12 +96,12 @@ async function startServer() {
               </table>
             </div>
 
-            <div style="margin-top: 30px; padding: 20px; background: rgba(245, 158, 11, 0.05); border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2);">
-              <p style="font-size: 11px; color: #f59e0b; font-weight: 700; margin: 0; line-height: 1.5; text-transform: uppercase; text-align: center;">
-                Manual authorization required. Funds will be dispersed upon high-frequency verification by the institutional board.
+            <div style="margin-top: 30px; padding: 20px; background: rgba(255, 68, 68, 0.05); border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+              <p style="font-size: 11px; color: #ff4444; font-weight: 700; margin: 0; line-height: 1.5; text-transform: uppercase; text-align: center;">
+                Prompt: Please process this transaction manually. The system has paused automatic disbursement per protocol.
               </p>
             </div>
-            
+
             <div style="margin-top: 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); pt: 20px;">
               <p style="font-size: 9px; color: #4b5563; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em;">
                 Profit Wavy Securities • Institutional Clearing House • v2.4.0
@@ -430,66 +430,7 @@ async function startServer() {
     }
   });
 
-  // Paystack Transfer Helper
-  const initiatePaystackPayout = async (withdrawalData) => {
-    const { amount, metadata, userId } = withdrawalData;
-    const SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
-
-    if (!SECRET_KEY || SECRET_KEY.includes('YOUR_PAYSTACK_SECRET_KEY')) {
-      console.log(`[PAYOUT-DEMO] Paystack Secret Key not configured for user ${userId}. Payout GH₵ ${amount} simulated.`);
-      return { status: 'simulated', message: 'Demo mode: real payout skipped' };
-    }
-
-    try {
-      // 1. Create Transfer Recipient
-      const recipientRes = await fetch('https://api.paystack.co/transferrecipient', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: metadata.method === 'momo' ? 'mobile_money' : 'nuban',
-          name: metadata.accountName || `ProfitWavy User ${userId}`,
-          account_number: metadata.details,
-          bank_code: metadata.network || 'MTN', // Paystack uses MTN, VOD, ATL for GH MOMO
-          currency: 'GHS'
-        })
-      });
-
-      const recipientData = await recipientRes.json();
-      if (!recipientRes.ok || !recipientData.status) {
-        throw new Error(`Paystack Recipient Error: ${recipientData.message}`);
-      }
-
-      // 2. Initiate Transfer
-      const transferRes = await fetch('https://api.paystack.co/transfer', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          source: 'balance',
-          amount: Math.round(amount * 100), // convert to pesewas
-          recipient: recipientData.data.recipient_code,
-          reason: `ProfitWavy Withdrawal - User ${userId}`,
-          currency: 'GHS'
-        })
-      });
-
-      const transferData = await transferRes.json();
-      if (!transferRes.ok || !transferData.status) {
-        throw new Error(`Paystack Payout Error: ${transferData.message}`);
-      }
-
-      console.log(`[PAYOUT-SUCCESS] Paystack Transfer initiated for user ${userId}: ${transferData.data.transfer_code}`);
-      return { status: 'success', reference: transferData.data.reference };
-    } catch (err) {
-      console.error('[PAYOUT-FATAL]', err.message);
-      throw err;
-    }
-  };
+    // Paystack Transfer Helper removed - Manual processing enabled
 
   // Create Transaction
   app.post("/api/transactions", async (req, res) => {

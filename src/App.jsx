@@ -88,7 +88,10 @@ export default function App() {
       if (firebaseUser) {
         // Diagnostic check: verify server is listening
         try {
-          const diagRes = await fetch('/api/diagnostics');
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout for fast diag
+          const diagRes = await fetch('/api/diagnostics', { signal: controller.signal });
+          clearTimeout(timeoutId);
           if (!diagRes.ok) throw new Error("Server reporting issues");
           console.log("Terminal Diagnostics: OK");
         } catch (diagErr) {
@@ -101,9 +104,13 @@ export default function App() {
         try {
           const referralCode = window.safeLocalStorage.getItem('referralCode');
           
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s for DB sync
+          
           const syncRes = await fetch('/api/users/sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
             body: JSON.stringify({
               uid: firebaseUser.uid,
               email: firebaseUser.email,
@@ -113,6 +120,7 @@ export default function App() {
             }),
           });
           
+          clearTimeout(timeoutId);
           const syncText = await syncRes.text();
           
           if (syncRes.ok) {

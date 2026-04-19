@@ -95,9 +95,9 @@ export default function Dashboard({ user, setActiveTab }) {
 
       setDbError(null);
       
-      const safeFetchJson = async (url, timeoutMs = 12000) => {
+      const safeFetchJson = async (url, timeoutMs = 20000) => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort("Fetch timeout"), timeoutMs);
+        const timeoutId = setTimeout(() => controller.abort("Terminal Signal Timeout"), timeoutMs);
         try {
           const res = await fetch(url, { signal: controller.signal });
           const text = await res.text();
@@ -126,6 +126,10 @@ export default function Dashboard({ user, setActiveTab }) {
           }
         } catch (err) {
           clearTimeout(timeoutId);
+          // Standardize timeout error for the catch block
+          if (err.name === 'AbortError' || err.message === 'Fetch timeout' || err === 'Fetch timeout' || err.message === 'Terminal Signal Timeout') {
+            throw new Error('Institutional Signal Timeout');
+          }
           throw err;
         }
       };
@@ -165,8 +169,11 @@ export default function Dashboard({ user, setActiveTab }) {
         }
       }
     } catch (error) {
-      if (error.name === 'AbortError' || error === 'User data fetch timeout' || error === 'Transaction fetch timeout') {
-        console.warn("Dashboard sync timed out, skipping this cycle.");
+      if (error.name === 'AbortError' || error.message === 'Institutional Signal Timeout' || error === 'User data fetch timeout' || error === 'Transaction fetch timeout') {
+        console.warn("Dashboard Signal Latency: Terminal sync timed out, skipping this cycle.");
+        if (recentReturns.length === 0) {
+          setDbError("Institutional Signal Latency: Re-calibrating terminal link...");
+        }
       } else if (error.message === 'Failed to fetch') {
         console.warn("Signal Link Dropout: Terminal is likely performing a secure reboot or recalibrating. Retrying in next cycle.");
         if (recentReturns.length === 0) {

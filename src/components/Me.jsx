@@ -56,7 +56,12 @@ export default function Me({ user: firebaseUser }) {
 
   const fetchUserData = async () => {
     try {
-      const res = await fetch(`/api/users/${firebaseUser.uid}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      
+      const res = await fetch(`/api/users/${firebaseUser.uid}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      
       if (res.ok) {
         const data = await res.json();
         setUserData(data);
