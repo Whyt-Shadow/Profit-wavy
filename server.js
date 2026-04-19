@@ -35,15 +35,20 @@ async function startServer() {
       });
     });
    
-    // MongoDB Connection Status Middleware
-    const checkMongoConnection = (req, res, next) => {
-      const isPublicRoute = ['/api/health', '/api/test', '/api/system/status'].includes(req.path);
-      if (mongoose.connection.readyState !== 1 && req.path.startsWith('/api/') && !isPublicRoute) {
-        return res.status(503).json({ error: "Database connection is not ready. Please confirm your MONGODB_URI in Settings." });
+    // Institutional Integrity Middleware (Database Security Gate)
+    app.use('/api', (req, res, next) => {
+      // Diagnostic and system routes must always be accessible to check status
+      const isStatusRoute = ['/health', '/test', '/system/status', '/diagnostics'].includes(req.path);
+      
+      if (mongoose.connection.readyState !== 1 && !isStatusRoute) {
+        console.warn(`[INTEGRITY-GATE] Blocked ${req.method} ${req.url}: Database link is currently offline (Status: ${mongoose.connection.readyState})`);
+        return res.status(503).json({ 
+          error: "Institutional Database is recalibrating secure link. Re-synchronizing signals...",
+          status: "initializing"
+        });
       }
       next();
-    };
-    app.use(checkMongoConnection);
+    });
 
     // Nodemailer configuration
     const transporter = nodemailer.createTransport({
@@ -133,17 +138,6 @@ async function startServer() {
       next();
     });
 
-    // Database Connection Safeguard (Institutional Stability Middleware)
-    app.use('/api', (req, res, next) => {
-      if (mongoose.connection.readyState !== 1) {
-        console.warn(`[API-GATE] Request to ${req.url} blocked: Database connection status is ${mongoose.connection.readyState}`);
-        return res.status(503).json({ 
-          error: "Institutional Database is recalibrating secure link. Re-synchronizing signals...",
-          status: "initializing"
-        });
-      }
-      next();
-    });
 
   // MongoDB Connection (non-blocking)
   if (MONGODB_URI) {
