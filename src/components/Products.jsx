@@ -172,8 +172,8 @@ export default function Products({ onInvest, dbUser }) {
             Investment <span className="text-gray-600">Waves.</span>
           </h1>
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-6 md:px-8 py-3 md:py-4 rounded-2xl md:rounded-3xl max-w-2xl mx-auto">
-            <p className="text-gray-400 font-medium text-xs md:text-lg leading-relaxed">
-              Select an institutional-grade wave plan tailored to your capital growth objectives.
+            <p className="text-gray-400 font-medium text-xs md:text-lg leading-relaxed text-center">
+              Select an institutional-grade wave plan. Each plan algorithmically deploys capital into specific liquidity pools for a high-frequency 15-day institutional cycle.
             </p>
           </div>
         </div>

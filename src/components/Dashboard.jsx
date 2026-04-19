@@ -13,7 +13,10 @@ import {
   PieChart as PieChartIcon,
   Zap,
   X,
-  Gift
+  Gift,
+  Info,
+  Activity,
+  Award
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNotification } from './NotificationProvider';
@@ -63,109 +66,126 @@ export default function Dashboard({ user, setActiveTab }) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort("System status check timeout"), 5000);
         const statusRes = await fetch('/api/system/status', { signal: controller.signal });
+        const text = await statusRes.text();
         clearTimeout(timeoutId);
+
+        if (statusRes.status === 503 || text.includes("<title>Starting Server...</title>")) {
+          setDbError("Institutional Terminal is re-synchronizing with the global matrix...");
+          return;
+        }
+
         if (statusRes.ok) {
-          const status = await statusRes.json();
-          if (status.db === 'disconnected') {
-            setDbError("Database is currently offline. Please ensure MONGODB_URI is correctly configured in Settings.");
-            return;
+          try {
+            const status = JSON.parse(text);
+            if (status.db === 'disconnected' || status.dbStatus === 'disconnected') {
+              setDbError("Database signal lost. Re-establishing secure terminal link...");
+              return;
+            }
+          } catch (e) {
+             console.warn("Status parse failed - assuming terminal reboot");
           }
         }
       } catch (e) {
-        if (e.name === 'AbortError' || e === 'System status check timeout') {
-          console.warn("System status check timed out");
-        } else {
-          console.warn("System status check failed", e);
+        if (e.message === 'Failed to fetch') {
+           setDbError("Signal Link Dropout: Terminal is recalibrating signals...");
+           return;
         }
-        // Don't stop here, try to fetch user data anyway as the server might just be slow
+        console.warn("System status check timed out or failed", e);
       }
 
       setDbError(null);
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort("User data fetch timeout"), 12000); // Increased timeout for stability
-
-      // Fetch User Data from MongoDB
-      const userRes = await fetch(`/api/users/${user.uid}`, { signal: controller.signal });
-      const userText = await userRes.text();
-      clearTimeout(timeoutId);
-      
-      if (userRes.ok) {
-        let userData;
+      const safeFetchJson = async (url, timeoutMs = 12000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort("Fetch timeout"), timeoutMs);
         try {
-          userData = JSON.parse(userText);
-          const balance = Number(userData.balance) || 0;
-          const totalReturns = Number(userData.totalReturns) || 0;
-          const totalInvested = Number(userData.totalInvested) || 0;
+          const res = await fetch(url, { signal: controller.signal });
+          const text = await res.text();
+          clearTimeout(timeoutId);
 
-          setTotalBalance(balance + totalReturns);
-          setInvested(totalInvested);
-          setAvailableCash(balance);
-          setActiveReturns(totalReturns);
-          setUserData(userData);
-        } catch (jsonErr) {
-          console.error("DASHBOARD: User data JSON parse failed. Response text:", userText.substring(0, 500));
+          if (!res.ok) {
+            try {
+              const errorData = JSON.parse(text);
+              return { error: errorData.error || `HTTP ${res.status}`, status: res.status };
+            } catch (e) {
+              if (text.includes("<title>Starting Server...</title>")) {
+                return { error: "Institutional Terminal is booting...", status: 503, isBooting: true };
+              }
+              return { error: "Protocol Error", status: res.status };
+            }
+          }
+
+          try {
+            const data = JSON.parse(text);
+            return { data, status: 200 };
+          } catch (e) {
+            if (text.includes("<title>Starting Server...</title>")) {
+              return { error: "Institutional Terminal is booting...", status: 503, isBooting: true };
+            }
+            return { error: "Data Format Signal Latency", status: 200 };
+          }
+        } catch (err) {
+          clearTimeout(timeoutId);
+          throw err;
         }
-      } else {
-        try {
-          const errorData = JSON.parse(userText);
-          console.error("Server error fetching user:", errorData.error);
-          if (userRes.status === 503) setDbError(errorData.error);
-        } catch (e) {
-          console.error("Server error fetching user (not JSON):", userText.substring(0, 100));
-        }
+      };
+
+      // Fetch User Data
+      const userResult = await safeFetchJson(`/api/users/${user.uid}`);
+      if (userResult.data) {
+        const userData = userResult.data;
+        const balance = Number(userData.balance) || 0;
+        const totalReturns = Number(userData.totalReturns) || 0;
+        const totalInvested = Number(userData.totalInvested) || 0;
+
+        setTotalBalance(balance + totalReturns);
+        setInvested(totalInvested);
+        setAvailableCash(balance);
+        setActiveReturns(totalReturns);
+        setUserData(userData);
+      } else if (userResult.isBooting) {
+        setDbError("Establishing secure connection to Institutional Terminal...");
+      } else if (userResult.error) {
+        console.error("User fetch error:", userResult.error);
+        if (userResult.status === 503) setDbError(userResult.error);
       }
 
-      // Fetch Transactions from MongoDB
-      const txController = new AbortController();
-      const txTimeoutId = setTimeout(() => txController.abort("Transaction fetch timeout"), 12000);
-      const txRes = await fetch(`/api/transactions/${user.uid}`, { signal: txController.signal });
-      const txText = await txRes.text();
-      clearTimeout(txTimeoutId);
-
-      if (txRes.ok) {
-        let txData;
-        try {
-          txData = JSON.parse(txText);
-          if (Array.isArray(txData)) {
-            setRecentReturns(txData.slice(0, 10).map((tx) => ({
-              id: tx._id || Math.random(),
-              name: tx.planName || (tx.type === 'withdrawal' ? 'Withdrawal' : 'Transaction'),
-              amount: Number(tx.amount) || 0,
-              type: tx.type === 'investment' || tx.type === 'withdrawal' ? 'loss' : 'gain',
-              date: new Date(tx.createdAt || tx.timestamp || Date.now()).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
-            })));
-          }
-        } catch (jsonErr) {
-          console.error("DASHBOARD: Transactions JSON parse failed. Response text:", txText.substring(0, 500));
-        }
-      } else {
-        try {
-          const errorData = JSON.parse(txText);
-          console.error("Server error fetching transactions:", errorData.error);
-          if (txRes.status === 503) setDbError(errorData.error);
-        } catch (e) {
-          console.error("Server error fetching transactions (not JSON):", txText.substring(0, 100));
+      // Fetch Transactions
+      const txResult = await safeFetchJson(`/api/transactions/${user.uid}`);
+      if (txResult.data) {
+        const txData = txResult.data;
+        if (Array.isArray(txData)) {
+          setRecentReturns(txData.slice(0, 10).map((tx) => ({
+            id: tx._id || Math.random(),
+            name: tx.planName || (tx.type === 'withdrawal' ? 'Withdrawal' : 'Transaction'),
+            amount: Number(tx.amount) || 0,
+            type: tx.type === 'investment' || tx.type === 'withdrawal' ? 'loss' : 'gain',
+            date: new Date(tx.createdAt || tx.timestamp || Date.now()).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
+          })));
         }
       }
     } catch (error) {
       if (error.name === 'AbortError' || error === 'User data fetch timeout' || error === 'Transaction fetch timeout') {
         console.warn("Dashboard sync timed out, skipping this cycle.");
+      } else if (error.message === 'Failed to fetch') {
+        console.warn("Signal Link Dropout: Terminal is likely performing a secure reboot or recalibrating. Retrying in next cycle.");
+        if (recentReturns.length === 0) {
+          setDbError("Institutional Terminal is recalibrating signal... Please wait.");
+        }
       } else {
         console.error("Network error fetching data from MongoDB:", error);
-        // Only show error if it's not a background refresh failure to avoid persistent UI flickers
         if (recentReturns.length === 0) {
-          setDbError("Network error. Please check your connection.");
+          setDbError("Network latency detected. Re-establishing secure terminal link...");
         }
       }
     }
   };
 
   useEffect(() => {
-    // Small delay for the first fetch to ensure backend sync is complete
+    // Small delay for the first fetch to ensure backend sync and DB link are established
     const initialTimeout = setTimeout(() => {
       fetchData().catch(err => console.error("DASHBOARD-INITIAL-FETCH-ERROR", err));
-    }, 1000);
+    }, 2500); 
     
     const interval = setInterval(() => {
       fetchData().catch(err => console.error("DASHBOARD-POLL-ERROR", err));
@@ -196,6 +216,7 @@ export default function Dashboard({ user, setActiveTab }) {
         isOpen={isWithdrawOpen} 
         onClose={() => setIsWithdrawOpen(false)} 
         balance={availableCash}
+        level={userData?.level || 0}
         referralCount={userData?.referralCount || 0}
         hasCompletedTerm={userData?.hasCompletedTerm || false}
         onWithdrawSuccess={fetchData} 
@@ -269,6 +290,9 @@ export default function Dashboard({ user, setActiveTab }) {
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase italic font-display">
               Market <span className="text-gray-600">Overview.</span>
             </h1>
+            <p className="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-widest max-w-sm">
+              Secured Capital Deployment & Institutional Yield Matrix
+            </p>
           </div>
           <div className="flex items-center gap-4 self-start md:self-auto">
             <button 
@@ -307,15 +331,21 @@ export default function Dashboard({ user, setActiveTab }) {
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6 md:mb-10">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-3">
                   <p className="text-[10px] md:text-xs font-black text-blue-200 uppercase tracking-[0.3em]">Total Portfolio Value</p>
-                  <div className="flex items-center gap-1 bg-green-500/20 px-2 py-0.5 rounded-full border border-green-500/30">
-                    <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[6px] font-black text-green-400 uppercase tracking-widest">Live</span>
+                  <div className="flex items-center gap-1.5 bg-green-500/20 px-3 py-1 rounded-full border border-green-500/30">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[8px] font-black text-green-400 uppercase tracking-widest">Active Terminal</span>
                   </div>
-                  <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
-                    <Zap className="w-2.5 h-2.5 text-blue-300" />
-                    <span className="text-[6px] font-black text-blue-100 uppercase tracking-widest">LVL {userData?.level || 0}</span>
+                  <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full border border-white/30 backdrop-blur-md shadow-lg shadow-black/20 group/level">
+                    <Zap className="w-3 h-3 text-yellow-400 fill-yellow-400 group-hover/level:scale-125 transition-transform" />
+                    <span className="text-[8px] font-black text-white uppercase tracking-[0.2em]">
+                      {userData?.level === 5 ? 'LEGACY TIER' : 
+                       userData?.level === 4 ? 'ELITE TIER' : 
+                       userData?.level === 3 ? 'PREMIUM TIER' : 
+                       userData?.level === 2 ? 'SILVER TIER' : 
+                       userData?.level === 1 ? 'BRONZE TIER' : 'STANDARD TIER'}
+                    </span>
                   </div>
                 </div>
                 <h2 className="text-4xl md:text-6xl font-black tracking-tighter font-display italic">{formatCurrency(totalBalance)}</h2>
@@ -372,6 +402,137 @@ export default function Dashboard({ user, setActiveTab }) {
             </div>
             <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/5">
               <p className="text-[8px] md:text-[10px] text-gray-600 font-black uppercase tracking-widest">Secure Transactions via Paystack</p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Operational Protocol & Level Schema */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 md:p-10 space-y-8"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-blue-500/20">
+                <Activity className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Investment Protocol</h3>
+                <p className="text-xl font-black font-display uppercase italic">Capital <span className="text-gray-600">Deployment.</span></p>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <p className="text-sm md:text-base text-gray-400 font-medium leading-relaxed">
+                Profit Wavy operates as a high-frequency institutional terminal. When you stake capital into a <span className="text-blue-500 font-bold italic">"Product Wave"</span>, your funds are algorithmically allocated toward sector-specific liquidity pools. These "Waves" represent diversified portfolios that leverage market volatility spreads.
+              </p>
+
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="mt-1 w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
+                    <span className="text-[10px] font-black text-blue-500">01</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-white uppercase tracking-widest mb-1">Capital Aggregation</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">Upon initiation, your capital is aggregated into a master vault. This pooling mechanism allows Profit Wavy to execute large-scale trades that are typically inaccessible to individual retail participants.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="mt-1 w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
+                    <span className="text-[10px] font-black text-blue-500">02</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-white uppercase tracking-widest mb-1">Selection Logic</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">Each wave (Starter, Basic, Pro, Elite, Legacy) corresponds to a different liquidity pool with varied risk-mitigation ratios. Higher-tier waves utilize sophisticated algorithmic hedging to manage larger capital footprints.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="mt-1 w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
+                    <span className="text-[10px] font-black text-blue-500">03</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-white uppercase tracking-widest mb-1">High-Frequency Execution</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">Over a localized 15-day cycle, our matrix optimizes positions across multiple exchanges. The system captures micro-volatility in the Ghanaian Cedi and international asset pairings to stabilize the 100% principal guarantee.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="mt-1 w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
+                    <span className="text-[10px] font-black text-blue-500">04</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-white uppercase tracking-widest mb-1">Terminal Settlement</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">At the conclusion of the 15-day term, the system liquidates all positions held for your specific wave ticket. The platform then processes a synchronized payout of the initial capital plus the fixed institutional yield.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                <p className="text-[10px] text-gray-600 font-medium leading-relaxed italic">
+                  Note: The Yield Matrix is strictly regulated by our internal liquidity compliance. Sub-standard verification levels (Level 0) may experience delayed signal processing compared to Institutional Architects (Level 5).
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+              <div className="space-y-1">
+                <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Asset Backing</p>
+                <p className="text-xs font-bold text-white">Institutional Grade</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Term Duration</p>
+                <p className="text-xs font-bold text-white">15-Day Cycles</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 md:p-10 space-y-8"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-yellow-500/20 flex items-center justify-center border border-yellow-500/20">
+                <Award className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div>
+                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Rank Schema</h3>
+                <p className="text-xl font-black font-display uppercase italic">Tiered <span className="text-gray-600">Escalation.</span></p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <p className="text-sm md:text-base text-gray-400 font-medium leading-relaxed">
+                Unlock higher-tier liquidity pools and priority verification by escalating your institutional standing. Progression is algorithmically determined by capital commitment and verification depth.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { lvl: '0', name: 'Standard Terminal', benefit: 'Basic access to Starter waves (GH₵ 50-500). Standard terminal latency and periodic signal verification.' },
+                  { lvl: '1-2', name: 'Bronze / Silver Associate', benefit: 'Unlocked GH₵ 3,000+ high-yield products. Accelerated payout windows and secondary liquidity access.' },
+                  { lvl: '3-4', name: 'Premium / Elite Investor', benefit: 'VIP verification priority & GH₵ 10,000+ limits. Tailored institutional signals and zero-latency terminal links.' },
+                  { lvl: '5', name: 'Legacy Architect', benefit: 'Ultimate institutional standing. Unlimited signal access, dedicated liquidity channels, and priority algorithmic placement.' },
+                ].map((tier, idx) => (
+                  <div key={idx} className="flex items-start gap-4 p-4 rounded-3xl bg-white/[0.02] border border-white/5 group hover:bg-white/5 transition-all hover:border-blue-500/20">
+                    <div className="mt-1 w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center shrink-0 border border-blue-500/10 group-hover:bg-blue-600 transition-colors shadow-lg">
+                      <span className="text-[12px] font-black text-white">{tier.lvl}</span>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-white uppercase tracking-widest mb-1">{tier.name}</p>
+                      <p className="text-[10px] text-gray-500 font-medium leading-relaxed">{tier.benefit}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-white/5">
+                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-center">Protocol Escalation Manual v4.2</p>
+              </div>
             </div>
           </motion.div>
         </div>

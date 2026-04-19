@@ -5,7 +5,7 @@ import { auth } from '../lib/firebase';
 
 import { useNotification } from './NotificationProvider';
 
-export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSuccess, referralCount, hasCompletedTerm }) {
+export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSuccess, referralCount, hasCompletedTerm, level }) {
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('momo');
   const [details, setDetails] = useState('');
@@ -120,9 +120,24 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
             )}
 
             <div className="space-y-6 relative z-10">
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex justify-between items-center">
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Available Balance</span>
-                <span className="text-xl font-black font-display text-blue-500">GH₵ {(balance || 0).toLocaleString()}</span>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Standing</span>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-blue-500" />
+                    <span className="text-[10px] font-black uppercase text-blue-500">
+                      {level === 5 ? 'LEGACY ARCHITECT' : 
+                       level === 4 ? 'ELITE INVESTOR' : 
+                       level === 3 ? 'PREMIUM TRADER' : 
+                       level === 2 ? 'SILVER ASSOCIATE' : 
+                       level === 1 ? 'BRONZE MEMBER' : 'STANDARD TIER'}
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex justify-between items-center">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Available Balance</span>
+                  <span className="text-xl font-black font-display text-blue-500">GH₵ {(balance || 0).toLocaleString()}</span>
+                </div>
               </div>
 
               <div className="space-y-2">

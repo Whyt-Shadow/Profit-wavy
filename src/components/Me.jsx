@@ -498,9 +498,22 @@ export default function Me({ user: firebaseUser }) {
                     <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-xl border border-white/10 px-3 md:px-4 py-1 md:py-1.5 rounded-full">
                       <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{firebaseUser.email}</span>
                     </div>
-                    <div className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-500/20 px-3 py-1 rounded-full">
-                      <Shield className="w-3 h-3 text-blue-500" />
-                      <span className="text-[8px] font-black uppercase tracking-widest text-blue-400">Institutional Level {userData?.level || 0}</span>
+                    <div className={`inline-flex items-center gap-2 border px-4 py-2 rounded-2xl shadow-xl transition-all duration-500 scale-110 mt-2 ${
+                      userData?.level === 5 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 border-indigo-400/50 text-white animate-pulse' :
+                      userData?.level === 4 ? 'bg-gradient-to-r from-blue-600 to-blue-800 border-blue-400/50 text-white' :
+                      userData?.level === 3 ? 'bg-gradient-to-r from-yellow-500 to-orange-600 border-yellow-400/50 text-white' :
+                      userData?.level === 2 ? 'bg-slate-200 border-white text-slate-900' :
+                      userData?.level === 1 ? 'bg-orange-900/30 border-orange-500/30 text-orange-400' :
+                      'bg-white/5 border-white/10 text-gray-400'
+                    }`}>
+                      <Zap className={`w-4 h-4 ${userData?.level > 0 ? 'fill-current' : ''}`} />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                        {userData?.level === 5 ? 'LEGACY ARCHITECT' : 
+                         userData?.level === 4 ? 'ELITE INVESTOR' : 
+                         userData?.level === 3 ? 'PREMIUM TRADER' : 
+                         userData?.level === 2 ? 'SILVER ASSOCIATE' : 
+                         userData?.level === 1 ? 'BRONZE MEMBER' : 'STANDARD TIER'}
+                      </span>
                     </div>
                   </div>
                 </div>

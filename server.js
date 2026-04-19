@@ -133,6 +133,18 @@ async function startServer() {
       next();
     });
 
+    // Database Connection Safeguard (Institutional Stability Middleware)
+    app.use('/api', (req, res, next) => {
+      if (mongoose.connection.readyState !== 1) {
+        console.warn(`[API-GATE] Request to ${req.url} blocked: Database connection status is ${mongoose.connection.readyState}`);
+        return res.status(503).json({ 
+          error: "Institutional Database is recalibrating secure link. Re-synchronizing signals...",
+          status: "initializing"
+        });
+      }
+      next();
+    });
+
   // MongoDB Connection (non-blocking)
   if (MONGODB_URI) {
     mongoose.connect(MONGODB_URI)
@@ -651,9 +663,16 @@ async function startServer() {
     res.status(404).json({ error: `Institutional Route ${req.method} ${req.url} not found` });
   });
 
-  // Vite middleware for development
+  // Start listening EARLY (Institutional Speed Optimization)
+  // This ensures the terminal is responsive for API signals while assets are still loading
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`[SERVER] Profit Wavy Terminal ACTIVE on port ${PORT}`);
+    console.log(`[SERVER] Mode: ${process.env.NODE_ENV || 'development'}`);
+  });
+
+  // Vite middleware for development (Background Initialization)
   if (process.env.NODE_ENV !== "production") {
-    console.log("Initializing Vite Middleware (Development Mode)...");
+    console.log("Initializing Vite Middleware in background...");
     try {
       const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
@@ -661,7 +680,7 @@ async function startServer() {
         appType: "spa",
       });
       app.use(vite.middlewares);
-      console.log("Vite Middleware Ready.");
+      console.log("Vite Middleware Integrated.");
     } catch (viteErr) {
       console.error("FAILED to initialize Vite Middleware:", viteErr.message);
     }
@@ -673,12 +692,7 @@ async function startServer() {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
-
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`[SERVER] Profit Wavy Terminal ACTIVE on port ${PORT}`);
-    console.log(`[SERVER] Mode: ${process.env.NODE_ENV || 'development'}`);
-  });
-  } catch (err) {
+} catch (err) {
     console.error("FATAL: Failed to start server:", err);
     process.exit(1);
   }
