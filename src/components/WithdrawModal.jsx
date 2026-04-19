@@ -23,18 +23,25 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
     setError('');
     const withdrawAmount = parseInt(amount);
     
-    if (referralLock) {
-      setError("Institutional Protocol: You are required to refer 5 active members to unlock withdrawals.");
+    // 1. Check Amount & Balance FIRST
+    if (!withdrawAmount || withdrawAmount < 100) {
+      setError("Minimum withdrawal is GH₵ 100");
       return;
     }
-    
-    if (!withdrawAmount || withdrawAmount < 50) {
-      setError("Minimum withdrawal is GH₵ 50");
+
+    if (balance < 100) {
+      setError("Insufficient amount");
       return;
     }
 
     if (withdrawAmount > balance) {
       setError("Insufficient balance");
+      return;
+    }
+
+    // 2. Check Referral Lock ONLY after balance check passes
+    if (referralLock) {
+      setError("Institutional Protocol: You are required to refer 5 active members to unlock withdrawals.");
       return;
     }
 
@@ -106,7 +113,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
               </button>
             </div>
 
-            {hasAttempted && referralLock && (
+            {hasAttempted && referralLock && balance >= 100 && (parseInt(amount) || 0) >= 100 && (parseInt(amount) || 0) <= balance && (
               <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex gap-4">
                 <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" />
                 <div className="space-y-1">
@@ -144,7 +151,7 @@ export default function WithdrawModal({ isOpen, onClose, balance, onWithdrawSucc
                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] ml-1">Amount (GH₵)</label>
                 <input
                   type="number"
-                  placeholder="Min. 50"
+                  placeholder="Min. 100"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-xl font-black focus:ring-2 focus:ring-red-500 transition-all outline-none"

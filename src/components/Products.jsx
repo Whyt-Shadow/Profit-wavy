@@ -6,9 +6,9 @@ export default function Products({ onInvest, dbUser }) {
     {
       id: 'starter',
       name: 'Starter Plan',
-      min: 'GH₵ 50',
-      returns: 'GH₵ 100',
-      daily: 'GH₵ 6.67',
+      min: 'GH₵ 100',
+      returns: 'GH₵ 200',
+      daily: 'GH₵ 13.33',
       duration: '15 Days',
       assets: 'Agricultural Commodities',
       image: 'https://picsum.photos/seed/agriculture/600/400',

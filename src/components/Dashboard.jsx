@@ -520,7 +520,7 @@ export default function Dashboard({ user, setActiveTab }) {
 
               <div className="space-y-4">
                 {[
-                  { lvl: '0', name: 'Standard Terminal', benefit: 'Basic access to Starter waves (GH₵ 50-500). Standard terminal latency and periodic signal verification.' },
+                  { lvl: '0', name: 'Standard Terminal', benefit: 'Basic access to Starter waves (GH₵ 100-500). Standard terminal latency and periodic signal verification.' },
                   { lvl: '1-2', name: 'Bronze / Silver Associate', benefit: 'Unlocked GH₵ 3,000+ high-yield products. Accelerated payout windows and secondary liquidity access.' },
                   { lvl: '3-4', name: 'Premium / Elite Investor', benefit: 'VIP verification priority & GH₵ 10,000+ limits. Tailored institutional signals and zero-latency terminal links.' },
                   { lvl: '5', name: 'Legacy Architect', benefit: 'Ultimate institutional standing. Unlimited signal access, dedicated liquidity channels, and priority algorithmic placement.' },

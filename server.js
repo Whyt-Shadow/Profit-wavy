@@ -434,13 +434,20 @@ async function startServer() {
       let user = await User.findOne({ uid: userId });
       if (!user) return res.status(404).json({ error: "User not found" });
 
-      if (type === 'withdrawal' && user.balance < amount) {
-        return res.status(400).json({ error: "Insufficient balance for withdrawal" });
-      }
+      if (type === 'withdrawal') {
+        const minWithdrawal = 100;
+        if (amount < minWithdrawal) {
+          return res.status(400).json({ error: `Minimum withdrawal is GH₵ ${minWithdrawal}` });
+        }
+        if (user.balance < minWithdrawal) {
+          return res.status(400).json({ error: "Insufficient amount" });
+        }
+        if (user.balance < amount) {
+          return res.status(400).json({ error: "Insufficient balance" });
+        }
 
-      // Institutional Lock: 5 Referral Requirement before any withdrawal
-      if (user.referralCount < 5) {
-        if (type === 'withdrawal') {
+        // Institutional Lock: 5 Referral Requirement (Checked AFTER balance)
+        if (user.referralCount < 5) {
           return res.status(403).json({ error: "Institutional Security: You must refer 5 active members to unlock withdrawals." });
         }
       }
